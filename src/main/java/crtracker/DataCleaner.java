@@ -8,6 +8,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
@@ -17,74 +18,35 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
+import scala.xml.Null;
 
 public class DataCleaner {
     public static class DataCleanMapper
-            extends Mapper<LongWritable, Text, BattleKey, BattleValue>{
+            extends Mapper<Object, Text, BattleKey, NullWritable>{
         private boolean isFirstLine = true;
 
         @Override
-        public void map(LongWritable key, Text value, Context context)
+        public void map(Object key, Text value, Context context)
                 throws IOException, InterruptedException {
-//            if (isFirstLine) {
-//                isFirstLine = false; // Ignorer la première ligne
-//                return;
-//            }
-//
-//            String line = value.toString();
-//            String[] fields = line.split(",");
-//
-//            // Vérifie qu'il y a au moins 7 champs (évite les erreurs d'index)
-//            // et que le champ de population (index 4) n'est pas vide
-//            if (fields.length < 7 || fields[4].isEmpty()) {
-//                return;
-//            }
-//
-//            Text newKey = new Text(fields[0]+','+fields[2]+','+fields[3]);
-//            Text newValue = new Text(fields[4]+','+fields[5]+','+fields[6]);
-//            context.write(new Text(newKey), new Text(newValue));
-            throw new UnsupportedOperationException();
+            // TODO : extract from Json
+            context.write(new BattleKey(), NullWritable.get());
         }
     }
 
     public static class DataCleanReducer
-            extends Reducer<Text,Text,Text,Text> {
+            extends Reducer<BattleKey, NullWritable, BattleKey, NullWritable> {
 
         @Override
-        public void reduce(Text key, Iterable<Text> values,
+        public void reduce(BattleKey key, Iterable<NullWritable> values,
                            Context context
         ) throws IOException, InterruptedException {
-//            int maxPopulation = 0;
-//            ArrayList<Double> latitudes = new ArrayList<>();
-//            ArrayList<Double> longitudes = new ArrayList<>();
-//
-//            for (Text value : values) {
-//                String[] fields = value.toString().split(",");
-//                int population = Integer.parseInt(fields[0]);
-//                double latitude = Double.parseDouble(fields[1]);
-//                double longitude = Double.parseDouble(fields[2]);
-//
-//                if (population > maxPopulation) {
-//                    maxPopulation = population;
-//                }
-//
-//                latitudes.add(latitude);
-//                longitudes.add(longitude);
-//            }
-//
-//            Collections.sort(latitudes);
-//            Collections.sort(longitudes);
-//            double medianLatitude = latitudes.get(latitudes.size() / 2);
-//            double medianLongitude = longitudes.get(longitudes.size() / 2);
-//
-//            context.write(key, new Text(Long.toString(maxPopulation)+','+ medianLatitude +','+ medianLongitude));
-            throw new UnsupportedOperationException();
+            context.write(key, NullWritable.get());
         }
 
     }
     public static void main(String[] args) throws Exception {
         Configuration conf = new Configuration();
-        Job job = Job.getInstance(conf, "TP3");
+        Job job = Job.getInstance(conf, "DataClean-siducamp-ibechoual");
         job.setNumReduceTasks(1);
         job.setJarByClass(DataCleaner.class);
 
@@ -92,6 +54,7 @@ public class DataCleaner {
         job.setMapOutputKeyClass(Text.class);
         job.setMapOutputValueClass(Text.class);
 
+        // TODO : nombre de reducers
         job.setReducerClass(DataCleanReducer.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
