@@ -1,0 +1,53 @@
+{
+    "date": "2024-12-09T11:40:14Z",
+    "game": "gdc",
+    "mode": "CW_Duel_1v1",
+    "round": 1,
+    "type": "riverRaceDuel",
+    "winner": 1,
+    "players": [
+        {
+            "utag": "#2YC9C9LQ",
+            "ctag": "#8LL82L",
+            "trophies": 9000,
+            "ctrophies": 2503,
+            "exp": 66,
+            "league": 3,
+            "bestleague": 10,
+            "deck": "06080d1d27485b71",
+            "evo": "080d",
+            "tower": "",
+            "strength": 15.375,
+            "crown": 0,
+            "elixir": 10.17,
+            "touch": 1,
+            "score": 100
+        },
+        {
+            "utag": "#2VRVPCLPL",
+            "ctag": "#LJ0R9QJG",
+            "trophies": 7647,
+            "ctrophies": 2550,
+            "exp": 58,
+            "league": 2,
+            "bestleague": 3,
+            "deck": "06080d1214172133",
+            "evo": "",
+            "tower": "",
+            "strength": 14.375,
+            "crown": 3,
+            "elixir": 0.16,
+            "touch": 1,
+            "score": 250
+        }
+    ],
+    "warclan": {
+        "day": 0,
+        "hour_seg": 0,
+        "period": "115-1",
+        "training": [
+            true,
+            true
+        ]
+    }
+}
