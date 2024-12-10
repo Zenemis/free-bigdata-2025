@@ -10,7 +10,7 @@
  *  Deck 292f4f count: 1297.0 winrate: 63% nbplayers : 101 strengthW: 0.009784587378640778, Deck 2f484f count: 1105.0 winrate: 63% nbplayers : 101 strengthW: 0.00641025641025641, Deck 3d5a6d count: 1449.0 winrate: 63% nbplayers : 101 strengthW: 0.1800789760348584, Deck 08646b count: 1394.0 winrate: 63% nbplayers : 101 strengthW: 0.25736126840317103, Deck 0c2940 count: 1633.0 winrate: 63% nbplayers : 101 strengthW: 0.30680164888457806, Deck 022f6d count: 1147.0 winrate: 63% nbplayers : 101 strengthW: 0.271667817679558, Deck 08355e count: 1865.0 winrate: 63% nbplayers : 101 strengthW: 0.21659940526762958, Deck 122f6d count: 1075.0 winrate: 62% nbplayers : 101 strengthW: 0.19534711964549484, Deck 071637 count: 1589.0 winrate: 62% nbplayers : 101 strengthW: 0.2124248496993988, Deck 406265 count: 2575.0 winrate: 62% nbplayers : 101 strengthW: 0.3887600494743352, Deck 0b0c37 count: 7277.0 winrate: 62% nbplayers : 101 strengthW: 0.3228983998246383, Deck 0c3750 count: 2637.0 winrate: 62% nbplayers : 101 strengthW: 0.2405852994555354, Deck 0c2a2b count: 2301.0 winrate: 62% nbplayers : 101 strengthW: 0.17747395833333332, Deck 2a2b37 count: 1948.0 winrate: 62% nbplayers : 101 strengthW: 0.09336483155299918, Deck 071137 count: 4246.0 winrate: 62% nbplayers : 101 strengthW: 0.2523331447963801]
  */
 
-package crtracker;
+package oldcrtracker;
 
 import java.io.BufferedWriter;
 import java.io.FileOutputStream;
@@ -19,8 +19,9 @@ import java.io.OutputStreamWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 
+import crtracker.Battle;
+import crtracker.CRTools;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
@@ -95,21 +96,20 @@ public class DeckGenerator {
 		JavaRDD<Battle> clean = CRTools.getDistinctRawBattles(sc, CRTools.WEEKS);
 
 		JavaPairRDD<String, Deck> rdddecks = clean.flatMapToPair((x) -> {
-			if (x.players.get(0).deck.length() != 16 || x.players.get(1).deck.length() != 16
-					|| (Math.abs(x.players.get(0).strength - x.players.get(1).strength)) > 0.75
-					|| x.players.get(0).touch != 1 || x.players.get(1).touch != 1
+			if ((Math.abs(x.player1.strength - x.player2.strength)) > 0.75
+					|| x.player1.touch != 1 || x.player2.touch != 1
 					)
 				return new ArrayList<Tuple2<String, Deck>>().iterator();
 
-			if ((x.players.get(0).bestleague < 6 || x.players.get(1).bestleague < 6))
+			if ((x.player1.bestleague < 6 || x.player2.bestleague < 6))
 				return new ArrayList<Tuple2<String, Deck>>().iterator();
 
 			ArrayList<String> tmp1 = new ArrayList<>();
 			for (int i = 0; i < 8; ++i)
-				tmp1.add(x.players.get(0).deck.substring(i * 2, i * 2 + 2));
+				tmp1.add(x.player1.deck.substring(i * 2, i * 2 + 2));
 			ArrayList<String> tmp2 = new ArrayList<>();
 			for (int i = 0; i < 8; ++i)
-				tmp2.add(x.players.get(1).deck.substring(i * 2, i * 2 + 2));
+				tmp2.add(x.player2.deck.substring(i * 2, i * 2 + 2));
 			ArrayList<Tuple2<String, Deck>> res = new ArrayList<>();
 			for (ArrayList<ArrayList<Integer>> aa : combs)
 				for (ArrayList<Integer> cmb : aa)
@@ -208,20 +208,20 @@ public class DeckGenerator {
 		Deck d1;
 		Deck d2;
 	if (cmb.size() == 8) {		
-		d1 = new Deck(c1.toString(), x.players.get(0).evo, x.players.get(0).tower, 1, x.winner,
-				x.players.get(0).strength - x.players.get(1).strength, x.players.get(0).utag,
-				x.players.get(0).league, x.players.get(0).ctrophies);
-		d2 = new Deck(c2.toString(), x.players.get(1).evo, x.players.get(1).tower, 1, 1 - x.winner,
-				x.players.get(1).strength - x.players.get(0).strength, x.players.get(1).utag,
-				x.players.get(1).league, x.players.get(1).ctrophies);
+		d1 = new Deck(c1.toString(), x.player1.evo, x.player1.tower, 1, x.winner,
+				x.player1.strength - x.player2.strength, x.player1.utag,
+				x.player1.league, x.player1.ctrophies);
+		d2 = new Deck(c2.toString(), x.player2.evo, x.player2.tower, 1, 1 - x.winner,
+				x.player2.strength - x.player1.strength, x.player2.utag,
+				x.player2.league, x.player2.ctrophies);
 	}
 	else {
 		d1 = new Deck(c1.toString(), "", "", 1, x.winner,
-				x.players.get(0).strength - x.players.get(1).strength, x.players.get(0).utag,
-				x.players.get(0).league, x.players.get(0).ctrophies);
+				x.player1.strength - x.player2.strength, x.player1.utag,
+				x.player1.league, x.player1.ctrophies);
 		d2 = new Deck(c2.toString(), "", "", 1, 1 - x.winner,
-				x.players.get(1).strength - x.players.get(0).strength, x.players.get(1).utag,
-				x.players.get(1).league, x.players.get(1).ctrophies);
+				x.player2.strength - x.player1.strength, x.player2.utag,
+				x.player2.league, x.player2.ctrophies);
 	}
 		res.add(new Tuple2<>(d1.id, d1));
 		res.add(new Tuple2<>(d2.id, d2));

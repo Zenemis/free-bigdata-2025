@@ -1,0 +1,40 @@
+Idée générale :
+    - Utiliser le pattern de filtrage sur les "Battle"
+    - Ainsi, on surcharge la méthode "Equals" de Battle pour définir
+      la relation d'égalité entre deux batailles selon nos termes de
+      filtrage
+
+Pour un WarClan :
+    - Tous les attributs doivent être égaux
+
+Pour un Player :
+    - Un joueur n'est pas considéré seulement selon son tag, mais selon
+      sa configuration totale au moment de la bataille. Ainsi, on
+      considère tous ses attributs pour l'égalité, et en particulier
+      le deck
+    - Un joueur n'ayant pas de tour configurée se retrouve avec une
+      tour "6e" par défaut
+     - Les opérations et le stockage des strings est plus lourd que
+      celui des int. Or les decks sont représentées par des valeurs
+      hexadécimales, mais sous forme de mots dans les JSON. Nous les
+      transformons en entier. On remarque qu'un entier peut stocker
+      tout juste un deck, il est donc important de retirer les joueurs
+      avec deck incomplet de notre jeu de données pour ne pas avoir
+      d'ambigüité entre, par exemple :
+      * 00223e3f42486972 (deck valide)
+      *   223e3f42486972 (deck invalide)
+
+
+Pour une Battle :
+    - Puisque les données de 2v2 sont exclues, on passe d'une liste
+      de joueurs dans Battle à 2 attributs: player1 et player2
+    - Les attributs relatifs au mode de jeu (mode, game, round, WarClan)
+      sont comparés simplement pour l'égalité
+    - Les joueurs sont comparés vice-versa (this.p1 == other.p2 ?)
+    - Deux dates sont considérées égales si elles tombent dans le
+      epsilon de 10 s
+    - On essaie de réfuter l'égalité le plus tôt possible, en comparant
+      les éléments les plus probables d'être différents et les types
+      ayant la comparaison la plus rapide en cycle
+
+    ? Que faire si même game, mais incohérence sur le gagnant ?

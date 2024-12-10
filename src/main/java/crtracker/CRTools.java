@@ -25,8 +25,8 @@ public class CRTools {
         JavaRDD<Battle> rddpair = rdd.mapToPair((x) -> {
             Gson gson = new Gson();
             Battle d = gson.fromJson(x, Battle.class);
-            String u1 = d.players.get(0).utag;
-            String u2 = d.players.get(1).utag;
+            String u1 = d.player1.utag;
+            String u2 = d.player2.utag;
             return new Tuple2<>(d.date + "_" + d.round + "_"
                     + (u1.compareTo(u2) < 0 ? u1 + u2 : u2 + u1), d);
         }).distinct().values();
@@ -40,10 +40,10 @@ public class CRTools {
     	});
 
         JavaPairRDD<String, Iterable<Battle>> rddbattles = rddpair.mapToPair((d) -> {
-            String u1 = d.players.get(0).utag;
-            String u2 = d.players.get(1).utag;
-            double e1 = d.players.get(0).elixir;
-            double e2 = d.players.get(1).elixir;
+            String u1 = d.player1.utag;
+            String u2 = d.player2.utag;
+            double e1 = d.player1.elixir;
+            double e2 = d.player2.elixir;
             return new Tuple2<>(d.round + "_"
                     + (u1.compareTo(u2) < 0 ? u1 + e1 + u2 + e2 : u2 + e2 + u1 + e1), d);
         }).groupByKey();
