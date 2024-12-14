@@ -35,7 +35,7 @@ public class CRTools {
         Instant collect_start = Instant.parse("2024-09-26T09:00:00Z");
 
 		rddpair = rddpair.filter((Battle x) -> {
-			Instant inst = Instant.parse(x.date);
+			Instant inst = x.date;
 			return inst.isAfter(sliding_window) && inst.isAfter(collect_start);
     	});
 
@@ -54,16 +54,16 @@ public class CRTools {
             for (Battle bi : it)
                 lbattles.add(bi);
             lbattles.sort((Battle x, Battle y) -> {
-                if (Instant.parse(x.date).isAfter(Instant.parse(y.date)))
+                if (x.date.isAfter(y.date))
                     return 1;
-                if (Instant.parse(y.date).isAfter(Instant.parse(x.date)))
+                if (y.date.isAfter(x.date))
                     return -1;
                 return 0;
             });
             rbattles.add(lbattles.get(0));
             for (int i = 1; i < lbattles.size(); ++i) {
-                long i1 = Instant.parse(lbattles.get(i - 1).date).getEpochSecond();
-                long i2 = Instant.parse(lbattles.get(i).date).getEpochSecond();
+                long i1 = lbattles.get(i - 1).date.getEpochSecond();
+                long i2 = lbattles.get(i).date.getEpochSecond();
                 if (Math.abs(i1 - i2) > 10)
                     rbattles.add(lbattles.get(i));
             }

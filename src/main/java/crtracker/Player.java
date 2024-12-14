@@ -1,54 +1,46 @@
 package crtracker;
 
-import java.io.Serializable;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.hadoop.io.WritableComparable;
+
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
 import java.util.Objects;
 
-import org.codehaus.jackson.annotate.JsonProperty;
-import org.codehaus.jackson.annotate.JsonSetter;
-
-
-public class Player implements Serializable{
-	@JsonProperty("utag")
+public class Player implements WritableComparable<Player> {
 	public String utag;
-	@JsonProperty("ctag")
 	public String ctag;
-	@JsonProperty("trophies")
 	public int trophies;
-	@JsonProperty("ctrophies")
-	public int ctrophies;
-	@JsonProperty("exp")
+	public int ctrophies = 0;
 	public int exp;
-	@JsonProperty("league")
 	public int league;
-	@JsonProperty("bestleague")
 	public int bestleague;
-	@JsonProperty("deck")
 	public long deck;
-	@JsonSetter("deck")
+	public String evo;
+	public String tower = "6e";
+	public double strength;
+	public int crown;
+	public double elixir;
+	public int touch;
+	public int score;
+
+	@JsonProperty("deck")
 	public void setDeck(String deck) {
-		if (deck == null || deck.length() < 16) {
+		if (deck == null || deck.length() != 16) {
 			throw new IllegalArgumentException("Invalid deck: must be non-null and at least 16 characters long.");
 		}
 		this.deck = Long.parseLong(deck, 16); // Converts the hexadecimal string to a long
 	}
-	@JsonProperty("evo")
-	public String evo;
-	@JsonProperty("tower")
-	public String tower = "6e";
-	@JsonProperty("strength")
-	public double strength;
-	@JsonProperty("crown")
-	public int crown;
-	@JsonProperty("elixir")
-	public double elixir;
-	@JsonProperty("touch")
-	public int touch;
-	@JsonProperty("score")
-	public int score;
 
 	@Override
 	public String toString() {
 		return "Player [utag=" + utag +"]";
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(utag, ctag, evo, tower, deck, score, touch, elixir, strength, crown, league, bestleague, exp, trophies, ctrophies);
 	}
 
 	@Override
@@ -70,6 +62,49 @@ public class Player implements Serializable{
 				&& Objects.equals(ctag, player.ctag)
 				&& Objects.equals(evo, player.evo)
 				&& Objects.equals(tower, player.tower);
+	}
+
+	@Override
+	public void write(DataOutput out) throws IOException {
+		out.writeUTF(utag);
+		out.writeUTF(ctag == null ? "" : ctag);
+		out.writeInt(trophies);
+		out.writeInt(ctrophies);
+		out.writeInt(exp);
+		out.writeInt(league);
+		out.writeInt(bestleague);
+		out.writeLong(deck);
+		out.writeUTF(evo != null ? evo : "");
+		out.writeUTF((tower != null && !tower.isEmpty()) ? tower : "6e");
+		out.writeDouble(strength);
+		out.writeInt(crown);
+		out.writeDouble(elixir);
+		out.writeInt(touch);
+		out.writeInt(score);
+	}
+
+	@Override
+	public void readFields(DataInput in) throws IOException {
+		utag = in.readUTF();
+		ctag = in.readUTF();
+		trophies = in.readInt();
+		ctrophies = in.readInt();
+		exp = in.readInt();
+		league = in.readInt();
+		bestleague = in.readInt();
+		deck = in.readLong();
+		evo = in.readUTF();
+		tower = in.readUTF();
+		strength = in.readDouble();
+		crown = in.readInt();
+		elixir = in.readDouble();
+		touch = in.readInt();
+		score = in.readInt();
+	}
+
+	@Override
+	public int compareTo(Player o) {
+		return this.equals(o) ? 0 : ctag.compareTo(o.ctag);
 	}
 
 	public boolean isValid(){

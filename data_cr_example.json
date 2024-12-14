@@ -1,53 +1,908 @@
-{
-    "date": "2024-12-09T11:40:14Z",
-    "game": "gdc",
-    "mode": "CW_Duel_1v1",
-    "round": 1,
-    "type": "riverRaceDuel",
-    "winner": 1,
-    "players": [
-        {
-            "utag": "#2YC9C9LQ",
-            "ctag": "#8LL82L",
-            "trophies": 9000,
-            "ctrophies": 2503,
-            "exp": 66,
-            "league": 3,
-            "bestleague": 10,
-            "deck": "06080d1d27485b71",
-            "evo": "080d",
-            "tower": "",
-            "strength": 15.375,
-            "crown": 0,
-            "elixir": 10.17,
-            "touch": 1,
-            "score": 100
-        },
-        {
-            "utag": "#2VRVPCLPL",
-            "ctag": "#LJ0R9QJG",
-            "trophies": 7647,
-            "ctrophies": 2550,
-            "exp": 58,
-            "league": 2,
-            "bestleague": 3,
-            "deck": "06080d1214172133",
-            "evo": "",
-            "tower": "",
-            "strength": 14.375,
-            "crown": 3,
-            "elixir": 0.16,
-            "touch": 1,
-            "score": 250
+[
+    {
+        "date": "2024-12-09T11:23:14Z",
+        "game": "gdc",
+        "mode": "CW_Duel_1v1",
+        "round": 1,
+        "type": "riverRaceDuel",
+        "winner": 1,
+        "players": [
+            {
+                "utag": "#88GQQR9V9",
+                "ctag": "#QQ9QU2QQ",
+                "trophies": 9000,
+                "ctrophies": 1410,
+                "exp": 70,
+                "league": 7,
+                "bestleague": 10,
+                "deck": "04111932333d6263",
+                "evo": "0411",
+                "tower": "",
+                "strength": 15.375,
+                "crown": 0,
+                "elixir": 14.01,
+                "touch": 0,
+                "score": 100
+            },
+            {
+                "utag": "#CJPG8P8RC",
+                "ctag": "#YRPRUGRG",
+                "trophies": 7807,
+                "ctrophies": 1495,
+                "exp": 55,
+                "league": 1,
+                "bestleague": 3,
+                "deck": "0004111627435a6b",
+                "evo": "11",
+                "tower": "",
+                "strength": 14.6875,
+                "crown": 3,
+                "elixir": 0.37,
+                "touch": 1,
+                "score": 250
+            }
+        ],
+        "warclan": {
+            "day": 0,
+            "hour_seg": 0,
+            "period": "115-1",
+            "training": [
+                true,
+                true
+            ]
         }
-    ],
-    "warclan": {
-        "day": 0,
-        "hour_seg": 0,
-        "period": "115-1",
-        "training": [
-            true,
-            true
+    },
+    {
+        "date": "2024-12-09T11:22:12Z",
+        "game": "gdc",
+        "mode": "CW_Duel_1v1",
+        "round": 1,
+        "type": "riverRaceDuel",
+        "winner": 1,
+        "players": [
+            {
+                "utag": "#282PUVRLC",
+                "ctag": "#QVJRG2RC",
+                "trophies": 9000,
+                "ctrophies": 1225,
+                "exp": 64,
+                "league": 3,
+                "bestleague": 10,
+                "deck": "00022031454f6369",
+                "evo": "004f",
+                "tower": "",
+                "strength": 15.375,
+                "crown": 0,
+                "elixir": 5.93,
+                "touch": 0,
+                "score": 100
+            },
+            {
+                "utag": "#22JLQRLQY",
+                "ctag": "#LLG2J2RU",
+                "trophies": 9000,
+                "ctrophies": 1428,
+                "exp": 56,
+                "league": 7,
+                "bestleague": 9,
+                "deck": "0c142b334053696b",
+                "evo": "",
+                "tower": "",
+                "strength": 14.25,
+                "crown": 3,
+                "elixir": 0,
+                "touch": 1,
+                "score": 250
+            }
+        ],
+        "warclan": {
+            "day": 0,
+            "hour_seg": 0,
+            "period": "115-1",
+            "training": [
+                true,
+                true
+            ]
+        }
+    },
+    {
+        "date": "2024-12-09T11:29:04Z",
+        "game": "gdc",
+        "mode": "CW_Duel_1v1",
+        "round": 1,
+        "type": "riverRaceDuel",
+        "winner": 1,
+        "players": [
+            {
+                "utag": "#GRY8CVVUQ",
+                "ctag": "#QYUYJPY8",
+                "trophies": 7823,
+                "ctrophies": 2800,
+                "exp": 60,
+                "league": 2,
+                "bestleague": 9,
+                "deck": "0809233f48546669",
+                "evo": "08",
+                "tower": "",
+                "strength": 14.8125,
+                "crown": 0,
+                "elixir": 12.05,
+                "touch": 0,
+                "score": 100
+            },
+            {
+                "utag": "#JUR8RV",
+                "ctag": "#LYL2CVU0",
+                "trophies": 8926,
+                "ctrophies": 2756,
+                "exp": 56,
+                "league": 2,
+                "bestleague": 7,
+                "deck": "060d0f1a1b37535b",
+                "evo": "3753",
+                "tower": "",
+                "strength": 14.625,
+                "crown": 3,
+                "elixir": 0.71,
+                "touch": 1,
+                "score": 250
+            }
+        ],
+        "warclan": {
+            "day": 0,
+            "hour_seg": 0,
+            "period": "115-1",
+            "training": [
+                true,
+                true
+            ]
+        }
+    },
+    {
+        "date": "2024-12-09T11:51:08Z",
+        "game": "pathOfLegend",
+        "mode": "Ranked1v1_NewArena2",
+        "round": 0,
+        "type": "pathOfLegend",
+        "winner": 0,
+        "players": [
+            {
+                "utag": "#U9VQ8LJU",
+                "ctag": "#2L02928G",
+                "trophies": 9000,
+                "exp": 56,
+                "league": 7,
+                "bestleague": 8,
+                "deck": "062223253f5f6669",
+                "evo": "",
+                "tower": "6e",
+                "strength": 14,
+                "crown": 1,
+                "elixir": 4.35,
+                "touch": 1,
+                "score": 0
+            },
+            {
+                "utag": "#VYPYGVGLR",
+                "ctag": "#L0UJVYVP",
+                "trophies": 8303,
+                "exp": 48,
+                "league": 7,
+                "bestleague": 8,
+                "deck": "0b0c28292f505b5e",
+                "evo": "0b5e",
+                "tower": "6e",
+                "strength": 14,
+                "crown": 0,
+                "elixir": 5.67,
+                "touch": 1,
+                "score": 0
+            }
         ]
+    },
+    {
+        "date": "2024-12-09T11:28:38Z",
+        "game": "pathOfLegend",
+        "mode": "Ranked1v1_NewArena2",
+        "round": 0,
+        "type": "pathOfLegend",
+        "winner": 1,
+        "players": [
+            {
+                "utag": "#92J8L8RC",
+                "ctag": "#L82JGJVQ",
+                "trophies": 9000,
+                "exp": 63,
+                "league": 10,
+                "bestleague": 10,
+                "deck": "0b0c151e45506568",
+                "evo": "0b1e",
+                "tower": "6e",
+                "strength": 15.375,
+                "crown": 1,
+                "elixir": 5.86,
+                "touch": 1,
+                "score": 0
+            },
+            {
+                "utag": "#22JVYUJ9Q",
+                "ctag": "#QRU0YJRJ",
+                "trophies": 9000,
+                "exp": 62,
+                "league": 10,
+                "bestleague": 10,
+                "deck": "28292f364d5b5e77",
+                "evo": "2f5e",
+                "tower": "6e",
+                "strength": 15.375,
+                "crown": 3,
+                "elixir": 2.17,
+                "touch": 1,
+                "score": 0
+            }
+        ]
+    },
+    {
+        "date": "2024-12-09T11:47:52Z",
+        "game": "pathOfLegend",
+        "mode": "Ranked1v1_NewArena2",
+        "round": 0,
+        "type": "pathOfLegend",
+        "winner": 1,
+        "players": [
+            {
+                "utag": "#U9VQ8LJU",
+                "ctag": "#2L02928G",
+                "trophies": 9000,
+                "exp": 56,
+                "league": 7,
+                "bestleague": 8,
+                "deck": "062223253f5f6669",
+                "evo": "",
+                "tower": "6e",
+                "strength": 14,
+                "crown": 0,
+                "elixir": 0.86,
+                "touch": 1,
+                "score": 0
+            },
+            {
+                "utag": "#L2U0J09CR",
+                "ctag": "#YLQQU9CY",
+                "trophies": 9000,
+                "exp": 64,
+                "league": 7,
+                "bestleague": 10,
+                "deck": "0d191d2748585b61",
+                "evo": "0d58",
+                "tower": "6e",
+                "strength": 14.375,
+                "crown": 1,
+                "elixir": 4.24,
+                "touch": 1,
+                "score": 0
+            }
+        ]
+    },
+    {
+        "date": "2024-12-09T11:24:29Z",
+        "game": "pathOfLegend",
+        "mode": "Ranked1v1_NewArena2",
+        "round": 0,
+        "type": "pathOfLegend",
+        "winner": 1,
+        "players": [
+            {
+                "utag": "#92J8L8RC",
+                "ctag": "#L82JGJVQ",
+                "trophies": 9000,
+                "exp": 63,
+                "league": 10,
+                "bestleague": 10,
+                "deck": "0b0c151e45506568",
+                "evo": "0b1e",
+                "tower": "6e",
+                "strength": 15.375,
+                "crown": 1,
+                "elixir": 2.14,
+                "touch": 1,
+                "score": 0
+            },
+            {
+                "utag": "#YYVRV9GL0",
+                "ctag": "#GC2Y9CCC",
+                "trophies": 9000,
+                "exp": 58,
+                "league": 10,
+                "bestleague": 10,
+                "deck": "1221273c495c626a",
+                "evo": "3c62",
+                "tower": "6e",
+                "strength": 15.375,
+                "crown": 3,
+                "elixir": 0.2,
+                "touch": 1,
+                "score": 0
+            }
+        ]
+    },
+    {
+        "date": "2024-12-09T11:36:26Z",
+        "game": "pathOfLegend",
+        "mode": "Ranked1v1_NewArena2",
+        "round": 0,
+        "type": "pathOfLegend",
+        "winner": 1,
+        "players": [
+            {
+                "utag": "#G0LJU2PYL",
+                "ctag": "#2LGG8VY",
+                "trophies": 8460,
+                "exp": 54,
+                "league": 4,
+                "bestleague": 8,
+                "deck": "050a0e18323d5a62",
+                "evo": "0a18",
+                "tower": "6f",
+                "strength": 13.375,
+                "crown": 0,
+                "elixir": 1.68,
+                "touch": 1,
+                "score": 0
+            },
+            {
+                "utag": "#QQLCP8J82",
+                "ctag": "#QJ0JQVQ8",
+                "trophies": 7611,
+                "exp": 53,
+                "league": 4,
+                "bestleague": 8,
+                "deck": "0422333840586566",
+                "evo": "58",
+                "tower": "6e",
+                "strength": 13.1875,
+                "crown": 1,
+                "elixir": 1.41,
+                "touch": 1,
+                "score": 0
+            }
+        ]
+    },
+    {
+        "date": "2024-12-09T11:44:33Z",
+        "game": "pathOfLegend",
+        "mode": "Ranked1v1_NewArena2",
+        "round": 0,
+        "type": "pathOfLegend",
+        "winner": 1,
+        "players": [
+            {
+                "utag": "#U9VQ8LJU",
+                "ctag": "#2L02928G",
+                "trophies": 9000,
+                "exp": 56,
+                "league": 7,
+                "bestleague": 8,
+                "deck": "062223253f5f6669",
+                "evo": "",
+                "tower": "6e",
+                "strength": 14,
+                "crown": 0,
+                "elixir": 2.57,
+                "touch": 1,
+                "score": 0
+            },
+            {
+                "utag": "#U2CUUJ0YJ",
+                "ctag": "#P8J2R8P",
+                "trophies": 9000,
+                "exp": 56,
+                "league": 7,
+                "bestleague": 10,
+                "deck": "0a17586364666977",
+                "evo": "0a58",
+                "tower": "6e",
+                "strength": 14.25,
+                "crown": 1,
+                "elixir": 3.67,
+                "touch": 1,
+                "score": 0
+            }
+        ]
+    },
+    {
+        "date": "2024-12-09T11:36:59Z",
+        "game": "pathOfLegend",
+        "mode": "Ranked1v1_NewArena2",
+        "round": 0,
+        "type": "pathOfLegend",
+        "winner": 0,
+        "players": [
+            {
+                "utag": "#P0JCCUJU",
+                "ctag": "#QQCGRU98",
+                "trophies": 9000,
+                "exp": 59,
+                "league": 5,
+                "bestleague": 10,
+                "deck": "0518193d40475b65",
+                "evo": "1840",
+                "tower": "6e",
+                "strength": 13.375,
+                "crown": 1,
+                "elixir": 1.49,
+                "touch": 1,
+                "score": 0
+            },
+            {
+                "utag": "#PGR2LL0LV",
+                "ctag": "#YPY208CQ",
+                "trophies": 8240,
+                "exp": 56,
+                "league": 5,
+                "bestleague": 7,
+                "deck": "011e22292d404f65",
+                "evo": "404f",
+                "tower": "6f",
+                "strength": 13.375,
+                "crown": 0,
+                "elixir": 2.37,
+                "touch": 1,
+                "score": 0
+            }
+        ]
+    },
+    {
+        "date": "2024-12-09T11:31:12Z",
+        "game": "pathOfLegend",
+        "mode": "Ranked1v1_NewArena2",
+        "round": 0,
+        "type": "pathOfLegend",
+        "winner": 1,
+        "players": [
+            {
+                "utag": "#G0LJU2PYL",
+                "ctag": "#2LGG8VY",
+                "trophies": 8460,
+                "exp": 54,
+                "league": 4,
+                "bestleague": 8,
+                "deck": "050a0e18323d5a62",
+                "evo": "0a18",
+                "tower": "6f",
+                "strength": 13.375,
+                "crown": 1,
+                "elixir": 4.2,
+                "touch": 1,
+                "score": 0
+            },
+            {
+                "utag": "#QYJ0PRU2U",
+                "ctag": "#R0C8Y0YU",
+                "trophies": 9000,
+                "exp": 55,
+                "league": 4,
+                "bestleague": 7,
+                "deck": "00101117374b5a62",
+                "evo": "1137",
+                "tower": "6e",
+                "strength": 13.375,
+                "crown": 2,
+                "elixir": 1.71,
+                "touch": 1,
+                "score": 0
+            }
+        ]
+    },
+    {
+        "date": "2024-12-09T11:40:38Z",
+        "game": "pathOfLegend",
+        "mode": "Ranked1v1_NewArena2",
+        "round": 0,
+        "type": "pathOfLegend",
+        "winner": 0,
+        "players": [
+            {
+                "utag": "#U9VQ8LJU",
+                "ctag": "#2L02928G",
+                "trophies": 9000,
+                "exp": 56,
+                "league": 7,
+                "bestleague": 8,
+                "deck": "062223253f5f6669",
+                "evo": "",
+                "tower": "6e",
+                "strength": 14,
+                "crown": 1,
+                "elixir": 3.41,
+                "touch": 1,
+                "score": 0
+            },
+            {
+                "utag": "#9RGVQQ2R",
+                "ctag": "#RPR9Y00L",
+                "trophies": 9000,
+                "exp": 65,
+                "league": 7,
+                "bestleague": 10,
+                "deck": "0d2f33585b5c6977",
+                "evo": "0d2f",
+                "tower": "6f",
+                "strength": 14.375,
+                "crown": 0,
+                "elixir": 5.41,
+                "touch": 1,
+                "score": 0
+            }
+        ]
+    },
+    {
+        "date": "2024-12-09T11:44:16Z",
+        "game": "pathOfLegend",
+        "mode": "Ranked1v1_NewArena2",
+        "round": 0,
+        "type": "pathOfLegend",
+        "winner": 1,
+        "players": [
+            {
+                "utag": "#Y09L08VCP",
+                "ctag": "#8UGGR8RP",
+                "trophies": 8268,
+                "exp": 53,
+                "league": 3,
+                "bestleague": 8,
+                "deck": "000a15405365686c",
+                "evo": "40",
+                "tower": "6e",
+                "strength": 12.1875,
+                "crown": 0,
+                "elixir": 11.03,
+                "touch": 1,
+                "score": 0
+            },
+            {
+                "utag": "#9209PL2UG",
+                "ctag": "#GJJJY9QQ",
+                "trophies": 8266,
+                "exp": 53,
+                "league": 3,
+                "bestleague": 7,
+                "deck": "0a10151e2a37405b",
+                "evo": "3740",
+                "tower": "6e",
+                "strength": 12.375,
+                "crown": 3,
+                "elixir": 2.07,
+                "touch": 1,
+                "score": 0
+            }
+        ]
+    },
+    {
+        "date": "2024-12-09T11:44:51Z",
+        "game": "pathOfLegend",
+        "mode": "Ranked1v1_NewArena2",
+        "round": 0,
+        "type": "pathOfLegend",
+        "winner": 1,
+        "players": [
+            {
+                "utag": "#JJ2Q0Y8UG",
+                "ctag": "#PJUUYJ2Q",
+                "trophies": 9000,
+                "exp": 60,
+                "league": 5,
+                "bestleague": 10,
+                "deck": "1e292f383a40415b",
+                "evo": "2f40",
+                "tower": "70",
+                "strength": 13.375,
+                "crown": 1,
+                "elixir": 2.53,
+                "touch": 1,
+                "score": 0
+            },
+            {
+                "utag": "#P8JU002QL",
+                "ctag": "#28GGGUG",
+                "trophies": 9000,
+                "exp": 61,
+                "league": 5,
+                "bestleague": 9,
+                "deck": "19253d4b5b606166",
+                "evo": "",
+                "tower": "6e",
+                "strength": 13,
+                "crown": 2,
+                "elixir": 0.73,
+                "touch": 1,
+                "score": 0
+            }
+        ]
+    },
+    {
+        "date": "2024-12-09T11:37:15Z",
+        "game": "pathOfLegend",
+        "mode": "Ranked1v1_NewArena2",
+        "round": 0,
+        "type": "pathOfLegend",
+        "winner": 0,
+        "players": [
+            {
+                "utag": "#U9VQ8LJU",
+                "ctag": "#2L02928G",
+                "trophies": 9000,
+                "exp": 56,
+                "league": 7,
+                "bestleague": 8,
+                "deck": "062223253f5f6669",
+                "evo": "",
+                "tower": "6e",
+                "strength": 14,
+                "crown": 2,
+                "elixir": 5.37,
+                "touch": 1,
+                "score": 0
+            },
+            {
+                "utag": "#80GRPRRJV",
+                "ctag": "#LLLU29UP",
+                "trophies": 8807,
+                "exp": 64,
+                "league": 7,
+                "bestleague": 10,
+                "deck": "373f42434c5b6677",
+                "evo": "373f",
+                "tower": "6e",
+                "strength": 14.375,
+                "crown": 1,
+                "elixir": 0.28,
+                "touch": 1,
+                "score": 0
+            }
+        ]
+    },
+    {
+        "date": "2024-12-09T11:34:16Z",
+        "game": "pathOfLegend",
+        "mode": "Ranked1v1_NewArena2",
+        "round": 0,
+        "type": "pathOfLegend",
+        "winner": 0,
+        "players": [
+            {
+                "utag": "#2VU9VLCRL",
+                "ctag": "#YCYCYYPV",
+                "trophies": 8961,
+                "exp": 54,
+                "league": 5,
+                "bestleague": 8,
+                "deck": "11203137383f5357",
+                "evo": "373f",
+                "tower": "6e",
+                "strength": 13.375,
+                "crown": 1,
+                "elixir": 5.36,
+                "touch": 1,
+                "score": 0
+            },
+            {
+                "utag": "#YUJ92GV8R",
+                "ctag": "#G9YRGURR",
+                "trophies": 8781,
+                "exp": 55,
+                "league": 5,
+                "bestleague": 7,
+                "deck": "060b0d1d2748585b",
+                "evo": "0b0d",
+                "tower": "6e",
+                "strength": 13.375,
+                "crown": 0,
+                "elixir": 6.74,
+                "touch": 1,
+                "score": 0
+            }
+        ]
+    },
+    {
+        "date": "2024-12-09T11:36:34Z",
+        "game": "pathOfLegend",
+        "mode": "Ranked1v1_NewArena2",
+        "round": 0,
+        "type": "pathOfLegend",
+        "winner": 0,
+        "players": [
+            {
+                "utag": "#PQGQY9JQ2",
+                "ctag": "#YULGVGGQ",
+                "trophies": 9000,
+                "exp": 59,
+                "league": 7,
+                "bestleague": 10,
+                "deck": "0a151e404d656877",
+                "evo": "0a40",
+                "tower": "6e",
+                "strength": 14.375,
+                "crown": 2,
+                "elixir": 1.59,
+                "touch": 1,
+                "score": 0
+            },
+            {
+                "utag": "#LJL9GJVYG",
+                "ctag": "#YLVUVVU2",
+                "trophies": 9000,
+                "exp": 58,
+                "league": 7,
+                "bestleague": 10,
+                "deck": "0c14293138405b67",
+                "evo": "3140",
+                "tower": "6e",
+                "strength": 14.375,
+                "crown": 0,
+                "elixir": 4.74,
+                "touch": 1,
+                "score": 0
+            }
+        ]
+    },
+    {
+        "date": "2024-12-09T11:52:05Z",
+        "game": "gdc",
+        "mode": "CW_Battle_1v1",
+        "round": 0,
+        "type": "riverRacePvP",
+        "winner": 1,
+        "players": [
+            {
+                "utag": "#29P9C900C",
+                "ctag": "#R2GR2YLP",
+                "trophies": 9000,
+                "ctrophies": 20,
+                "exp": 64,
+                "league": 3,
+                "bestleague": 8,
+                "deck": "0a0d132031374f62",
+                "evo": "4f62",
+                "tower": "",
+                "strength": 15.375,
+                "crown": 0,
+                "elixir": 7.3,
+                "touch": 0,
+                "score": 100
+            },
+            {
+                "utag": "#9CLGVPUYL",
+                "ctag": "#QJYPU20R",
+                "trophies": 8300,
+                "ctrophies": 140,
+                "exp": 57,
+                "league": 2,
+                "bestleague": 4,
+                "deck": "12223e3f42486972",
+                "evo": "",
+                "tower": "",
+                "strength": 14,
+                "crown": 3,
+                "elixir": 5.13,
+                "touch": 1,
+                "score": 200
+            }
+        ],
+        "warclan": {
+            "day": 0,
+            "hour_seg": 0,
+            "period": "115-1",
+            "training": [
+                true,
+                true
+            ]
+        }
+    },
+    {
+        "date": "2024-12-09T11:40:14Z",
+        "game": "gdc",
+        "mode": "CW_Duel_1v1",
+        "round": 0,
+        "type": "riverRaceDuel",
+        "winner": 1,
+        "players": [
+            {
+                "utag": "#2YC9C9LQ",
+                "ctag": "#8LL82L",
+                "trophies": 9000,
+                "ctrophies": 2503,
+                "exp": 66,
+                "league": 3,
+                "bestleague": 10,
+                "deck": "00010a1e4f5d6566",
+                "evo": "014f",
+                "tower": "",
+                "strength": 15.375,
+                "crown": 0,
+                "elixir": 3.78,
+                "touch": 1,
+                "score": 100
+            },
+            {
+                "utag": "#2VRVPCLPL",
+                "ctag": "#LJ0R9QJG",
+                "trophies": 7647,
+                "ctrophies": 2550,
+                "exp": 58,
+                "league": 2,
+                "bestleague": 3,
+                "deck": "030410111a2d3b46",
+                "evo": "",
+                "tower": "",
+                "strength": 14.25,
+                "crown": 3,
+                "elixir": 0,
+                "touch": 1,
+                "score": 250
+            }
+        ],
+        "warclan": {
+            "day": 0,
+            "hour_seg": 0,
+            "period": "115-1",
+            "training": [
+                true,
+                true
+            ]
+        }
+    },
+    {
+        "date": "2024-12-09T11:40:14Z",
+        "game": "gdc",
+        "mode": "CW_Duel_1v1",
+        "round": 1,
+        "type": "riverRaceDuel",
+        "winner": 1,
+        "players": [
+            {
+                "utag": "#2YC9C9LQ",
+                "ctag": "#8LL82L",
+                "trophies": 9000,
+                "ctrophies": 2503,
+                "exp": 66,
+                "league": 3,
+                "bestleague": 10,
+                "deck": "06080d1d27485b71",
+                "evo": "080d",
+                "tower": "",
+                "strength": 15.375,
+                "crown": 0,
+                "elixir": 10.17,
+                "touch": 1,
+                "score": 100
+            },
+            {
+                "utag": "#2VRVPCLPL",
+                "ctag": "#LJ0R9QJG",
+                "trophies": 7647,
+                "ctrophies": 2550,
+                "exp": 58,
+                "league": 2,
+                "bestleague": 3,
+                "deck": "06080d1214172133",
+                "evo": "",
+                "tower": "",
+                "strength": 14.375,
+                "crown": 3,
+                "elixir": 0.16,
+                "touch": 1,
+                "score": 250
+            }
+        ],
+        "warclan": {
+            "day": 0,
+            "hour_seg": 0,
+            "period": "115-1",
+            "training": [
+                true,
+                true
+            ]
+        }
     }
-}
+]
