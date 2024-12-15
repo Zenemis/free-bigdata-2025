@@ -50,5 +50,29 @@ Pour une Battle :
       instance afin de pouvoir la lire/écrire sur HDFS, on utilise
       une méthode qui écrit une "WarClan" vide.
 
+Performances et ressources :
+    - Ratio taille/temps CPU
+      Small  : 58,4 Mo -> 49,0s CPU
+      Middle : 1,59 Go -> 16min CPU
+      Big    : 3,67 Go -> 37min CPU
+      De Small à Middle, fichier 27x plus lourd et 19x plus de temps CPU
+      De Middle à Big, fichier 2,303x plus lourd et 2,3 plus de temps CPU
+    - Ratio input/output
+      Small  : 100000/89302    -> 12% de réduction
+      Middle : 2781989/2590967 -> 7% de réduction
+      Big    : 6393303/5952326 -> 7% de réduction
+    - Ratio tailles entrée/sortie
+      Small  : 58 Mo/16 Mo     -> x3.6
+      Middle : 1.59 Go/667 Mo  -> x2.39
+      Big    : 3.67 Go/1.59 Go -> x2.31
+    - Mappers bien plus lents et lourds que reducers
+    - Phase shuffle lourde (24 / 58 Mo) : potentiel goulot d'étranglement
+    - 
 
-    ? Que faire si même game, mais incohérence sur le gagnant ?
+Questions :
+    - Que faire si même game, mais incohérence sur le gagnant ?
+    - Déléguer la partie filtrage au reduce plutôt qu'au map pour gagner
+      en performances ?
+    - Nous avons des résultats curieux sur le ratio nb_reads/nb_writes,
+      quels sont les résultats attendus ?
+    - Comment optimiser le nombre de reducers ?
