@@ -6,8 +6,9 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.hadoop.io.WritableComparable;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class WarClan implements WritableComparable<WarClan> {
 	public int day=0;
@@ -17,9 +18,9 @@ public class WarClan implements WritableComparable<WarClan> {
 	public boolean training2 = false;
 
 	@JsonProperty("training")
-	public void setPlayers(List<Boolean> training) {
+	public void setTrainings(List<Boolean> training) {
 		if (training == null || training.size() != 2) {
-			throw new IllegalArgumentException("Invalid players list: must contain exactly 2 players");
+			throw new IllegalArgumentException("Invalid training list: must contain exactly 2 trainings");
 		}
 		this.training1 = training.get(0);
 		this.training2 = training.get(1);
