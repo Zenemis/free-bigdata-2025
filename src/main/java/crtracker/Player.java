@@ -1,12 +1,13 @@
 package crtracker;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import org.apache.hadoop.io.WritableComparable;
-
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.util.Objects;
+
+import org.apache.hadoop.io.WritableComparable;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Player implements WritableComparable<Player> {
 	public String utag;
