@@ -24,14 +24,14 @@ Pour un Player :
     - Un joueur n'ayant pas de tour configurée se retrouve avec une
       tour "6e" par défaut
     - Les opérations et le stockage des strings est plus lourd que
-      celui des int. Or les decks sont représentées par des valeurs
+      celui des long. Or les decks sont représentées par des valeurs
       hexadécimales, mais sous forme de mots dans les JSON. Nous les
-      transformons en entier. On remarque qu'un entier peut stocker
-      tout juste un deck, il est donc important de retirer les joueurs
-      avec deck incomplet de notre jeu de données pour ne pas avoir
-      d'ambigüité entre, par exemple :
-      * 00223e3f42486972 (deck valide)
-      *   223e3f42486972 (deck invalide)
+      transformons en long. On remarque qu'un long peut stocker
+      tout juste un deck (64 bits), il est donc important de retirer les 
+      joueurs avec deck incomplet de notre jeu de données pour ne pas avoir
+      d'ambigüité, par exemple :
+      * "00223e3f42486972" (deck valide)
+      *   "223e3f42486972" (deck invalide)
 
 
 Pour une Battle :
