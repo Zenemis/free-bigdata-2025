@@ -1,4 +1,4 @@
-package crtracker;
+package datacleaner;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -36,11 +36,30 @@ public class Player implements WritableComparable<Player> {
 
 	@Override
 	public String toString() {
-		return "Player [utag=" + utag +"]";
+		StringBuilder sb = new StringBuilder();
+		sb.append("Player{");
+		sb.append("utag='").append(utag).append('\'');
+		sb.append(", ctag='").append(ctag).append('\'');
+		sb.append(", trophies=").append(trophies);
+		sb.append(", ctrophies=").append(ctrophies);
+		sb.append(", exp=").append(exp);
+		sb.append(", league=").append(league);
+		sb.append(", bestleague=").append(bestleague);
+		sb.append(", deck=").append(deck);
+		sb.append(", evo='").append(evo).append('\'');
+		sb.append(", tower='").append(tower).append('\'');
+		sb.append(", strength=").append(strength);
+		sb.append(", crown=").append(crown);
+		sb.append(", elixir=").append(elixir);
+		sb.append(", touch=").append(touch);
+		sb.append(", score=").append(score);
+		sb.append('}');
+		return sb.toString();
 	}
 
 	@Override
 	public int hashCode() {
+		// Bien calculer le hashcode
 		return Objects.hash(utag, ctag, evo, tower, deck, score, touch, elixir, strength, crown, league, bestleague, exp, trophies, ctrophies);
 	}
 
@@ -103,10 +122,43 @@ public class Player implements WritableComparable<Player> {
 		score = in.readInt();
 	}
 
+	// TODO : compareTo complet
 	@Override
 	public int compareTo(Player o) {
-		return this.equals(o) ? 0 : ctag.compareTo(o.ctag);
+		if (o == null) {
+			throw new NullPointerException("Cannot compare with null.");
+		}
+		if (equals(o)) return 0;
+
+		// Compare by unique tag (utag, lexicographically)
+		int cmp = this.utag.compareTo(o.utag);
+		if (cmp != 0) return cmp;
+
+		// Compare by clan tag (ctag, lexicographically)
+		cmp = this.ctag.compareTo(o.ctag);
+		if (cmp != 0) return cmp;
+
+		// Compare trophies (higher trophies come first)
+		cmp = Integer.compare(o.trophies, this.trophies);
+		if (cmp != 0) return cmp;
+
+		// Compare experience points (higher experience comes first)
+		cmp = Integer.compare(o.exp, this.exp);
+		if (cmp != 0) return cmp;
+
+		// Compare league (higher league comes first)
+		cmp = Integer.compare(o.league, this.league);
+		if (cmp != 0) return cmp;
+
+		// Compare crown count (higher crown count comes first)
+		cmp = Integer.compare(o.crown, this.crown);
+		if (cmp != 0) return cmp;
+
+		// Compare elixir usage (lower elixir usage comes first)
+		cmp = Double.compare(this.elixir, o.elixir);
+		return cmp;
 	}
+
 
 	public boolean isValid(){
 		if (touch == 0) return false;

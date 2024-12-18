@@ -1,7 +1,5 @@
 package warclanstudy;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import crtracker.WarClan;
 import org.apache.hadoop.io.WritableComparable;
 
 import java.io.DataInput;

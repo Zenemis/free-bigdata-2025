@@ -1,9 +1,10 @@
-package crtracker;
+package datacleaner;
 
 import java.io.IOException;
+
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
@@ -13,8 +14,9 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 public class DataCleaner {
     private static final long BLOCK_SIZE_MB = 128; // Taille du bloc en mégaoctets
@@ -27,7 +29,7 @@ public class DataCleaner {
                 throws IOException, InterruptedException {
             ObjectMapper objectMapper = new ObjectMapper();
             try {
-                Battle battle = objectMapper.readValue(value.toString(), Battle.class);
+                Battle battle = new Battle(objectMapper.readValue(value.toString(), BattleJson.class));
                 if (battle.isValid()) context.write(battle, NullWritable.get());
             } catch (Exception e) {
                 System.out.println("Battle ignored: " + e.getMessage());
@@ -60,7 +62,7 @@ public class DataCleaner {
         job.setOutputValueClass(NullWritable.class);
 
         job.setInputFormatClass(TextInputFormat.class);
-        job.setOutputFormatClass(SequenceFileOutputFormat.class);
+        job.setOutputFormatClass(TextOutputFormat.class);
 
         Path inputPath = new Path(args[0]);
         Path outputPath = new Path(args[1]);
@@ -72,7 +74,8 @@ public class DataCleaner {
         long totalInputSize = getInputSize(inputPath, conf);
 
         // Calculer le nombre de reducers dynamiquement
-        int numReducers = Math.max(1, (int) (totalInputSize / (BLOCK_SIZE_MB * 1024 * 1024)));
+        double nbOfBlocks = ((double) totalInputSize) / ((double) (BLOCK_SIZE_MB * 1024 * 1024));
+        int numReducers = Math.max(1, (int) Math.ceil(nbOfBlocks));
         job.setNumReduceTasks(numReducers);
 
         System.exit(job.waitForCompletion(true) ? 0 : 1);

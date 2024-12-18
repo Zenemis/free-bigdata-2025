@@ -1,14 +1,11 @@
-package crtracker;
+package datacleaner;
 
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.time.Instant;
-import java.time.format.DateTimeParseException;
-import java.util.List;
 import java.util.Objects;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.hadoop.io.WritableComparable;
 
 /*
@@ -33,33 +30,45 @@ public class Battle implements WritableComparable<Battle> {
 	public String mode;
 	public int round;
 	public String type;
-	public int winner;
-	public Player player1;
-	public Player player2;
-	public WarClan warclan;
+	public Player winner;
+	public Player loser;
+	public int warclan;
 
-	@JsonProperty("date")
-	public void setDate(String dateStr) {
-		try {
-			this.date = Instant.parse(dateStr);
-		} catch (DateTimeParseException e) {
-			throw new IllegalArgumentException("Invalid date format: " + dateStr, e);
-		}
-	}
+	public Battle() {}
 
-	@JsonProperty("players")
-	public void setPlayers(List<Player> players) {
-		if (players == null || players.size() != 2) {
+	public Battle(BattleJson battleJson) {
+		this.date = Instant.parse(battleJson.date);
+		this.game = battleJson.game;
+		this.mode = battleJson.mode;
+		this.round = battleJson.round;
+		this.type = battleJson.type;
+		if (battleJson.players == null || battleJson.players.size() != 2) {
 			throw new IllegalArgumentException("Invalid players list: must contain exactly 2 players");
 		}
-		this.player1 = players.get(0);
-		this.player2 = players.get(1);
+		this.winner = battleJson.players.get(battleJson.winner);
+		this.loser = battleJson.players.get(Math.abs(battleJson.winner-1));
+		warclan = battleJson.warclan == null ? 0 : battleJson.warclan.toInt();
 	}
 
-
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("Battle{");
+		sb.append("date=").append(date);
+		sb.append(", game='").append(game).append('\'');
+		sb.append(", mode='").append(mode).append('\'');
+		sb.append(", round=").append(round);
+		sb.append(", type='").append(type).append('\'');
+		sb.append(", winner=").append(winner);
+		sb.append(", loser=").append(loser);
+		sb.append(", warclan=").append(warclan);
+		sb.append('}');
+		return sb.toString();
+	}
+	
 	@Override
 	public int hashCode() {
-		return Objects.hash(date, game, mode, round, type, winner, player1, player2, warclan);
+		return Objects.hash(game, mode, round, type, winner, loser, warclan);
 	}
 
 	@Override
@@ -83,8 +92,8 @@ public class Battle implements WritableComparable<Battle> {
 			return false;
 		}
 
-		if (!Objects.equals(player1, battle.player2)) return false;
-		if (!Objects.equals(player2, battle.player1)) return false;
+		if (!Objects.equals(winner, battle.winner)) return false;
+		if (!Objects.equals(loser, battle.loser)) return false;
 
 		return true;
 	}
@@ -96,13 +105,9 @@ public class Battle implements WritableComparable<Battle> {
 		out.writeUTF(mode);
 		out.writeInt(round);
 		out.writeUTF(type);
-		out.writeInt(winner);
-		player1.write(out);
-		player2.write(out);
-		if (warclan != null)
-			warclan.write(out);
-		else
-			WarClan.writeEmpty(out);
+		winner.write(out);
+		loser.write(out);
+		out.writeInt(warclan);
 	}
 
 	@Override
@@ -112,13 +117,11 @@ public class Battle implements WritableComparable<Battle> {
 		mode = in.readUTF();
 		round = in.readInt();
 		type = in.readUTF();
-		winner = in.readInt();
-		player1 = new Player();
-		player1.readFields(in);
-		player2 = new Player();
-		player2.readFields(in);
-		warclan = new WarClan();
-		warclan.readFields(in);
+		winner = new Player();
+		winner.readFields(in);
+		loser = new Player();
+		loser.readFields(in);
+		warclan = in.readInt();
 	}
 
 	@Override
@@ -128,9 +131,8 @@ public class Battle implements WritableComparable<Battle> {
 
 	public boolean isValid() {
 		if (date == null || game == null || mode == null || type == null) return false;
-		if (player1 == null || player2 == null) return false;
-		if (!player1.isValid() || !player2.isValid()) return false;
-		if (warclan != null && !warclan.isValid()) return false;
+		if (winner == null || loser == null) return false;
+		if (!winner.isValid() || !loser.isValid()) return false;
 		return true;
 	}
 }
