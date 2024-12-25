@@ -26,10 +26,8 @@ import org.apache.hadoop.io.WritableComparable;
 
 public class Battle implements WritableComparable<Battle> {
 	public Instant date;
-	public String game;
-	public String mode;
+	public int gameModeType;
 	public int round;
-	public String type;
 	public Player winner;
 	public Player loser;
 	public int warclan;
@@ -38,10 +36,8 @@ public class Battle implements WritableComparable<Battle> {
 
 	public Battle(BattleJson battleJson) {
 		this.date = Instant.parse(battleJson.date);
-		this.game = battleJson.game;
-		this.mode = battleJson.mode;
+		this.gameModeType = Objects.hash(battleJson.game, battleJson.mode, battleJson.type);
 		this.round = battleJson.round;
-		this.type = battleJson.type;
 		if (battleJson.players == null || battleJson.players.size() != 2) {
 			throw new IllegalArgumentException("Invalid players list: must contain exactly 2 players");
 		}
@@ -55,10 +51,8 @@ public class Battle implements WritableComparable<Battle> {
 		StringBuilder sb = new StringBuilder();
 		sb.append("Battle{");
 		sb.append("date=").append(date);
-		sb.append(", game='").append(game).append('\'');
-		sb.append(", mode='").append(mode).append('\'');
+		sb.append(", gameModeType='").append(gameModeType).append('\'');
 		sb.append(", round=").append(round);
-		sb.append(", type='").append(type).append('\'');
 		sb.append(", winner=").append(winner);
 		sb.append(", loser=").append(loser);
 		sb.append(", warclan=").append(warclan);
@@ -68,8 +62,43 @@ public class Battle implements WritableComparable<Battle> {
 	
 	@Override
 	public int hashCode() {
-		return Objects.hash(game, mode, round, type, winner, loser, warclan);
+		return Objects.hash(gameModeType, round, winner, loser, warclan);
 	}
+
+	@Override
+	public int compareTo(Battle o) {
+		if (o == null) {
+			throw new NullPointerException("Cannot compare with null.");
+		}
+		// Compare by date
+		long difference = Math.abs(date.getEpochSecond() - o.date.getEpochSecond());
+		if (difference > 10)
+			return date.compareTo(o.date);
+
+		// Compare by gameModeType
+		int gameModeComparison = Integer.compare(gameModeType, o.gameModeType);
+		if (gameModeComparison != 0) {
+			return gameModeComparison;
+		}
+		// Compare by round
+		int roundComparison = Integer.compare(round, o.round);
+		if (roundComparison != 0) {
+			return roundComparison;
+		}
+		// Compare by winner
+		int winnerComparison = winner.compareTo(o.winner);
+		if (winnerComparison != 0) {
+			return winnerComparison;
+		}
+		// Compare by loser
+		int loserComparison = loser.compareTo(o.loser);
+		if (loserComparison != 0) {
+			return loserComparison;
+		}
+		// Compare by warclan
+		return Integer.compare(warclan, o.warclan);
+	}
+
 
 	@Override
 	public boolean equals(Object o) {
@@ -77,20 +106,12 @@ public class Battle implements WritableComparable<Battle> {
 		if (o == null || getClass() != o.getClass()) return false;
 		Battle battle = (Battle) o;
 		if (round != battle.round) return false;
-		if (!Objects.equals(game, battle.game)) return false;
-		if (!Objects.equals(type, battle.type)) return false;
-		if (!Objects.equals(mode, battle.mode)) return false;
-		if (!Objects.equals(warclan, battle.warclan)) return false;
+		if (gameModeType != battle.gameModeType) return false;
+		if (warclan != battle.warclan) return false;
 
 		// Compare the date with a tolerance of 10 seconds
-		try {
-			long difference = Math.abs(date.getEpochSecond() - battle.date.getEpochSecond());
-			if (difference > 10) return false;
-		} catch (Exception e) {
-			// Handle parsing errors (if any)
-			e.printStackTrace();
-			return false;
-		}
+		long difference = Math.abs(date.getEpochSecond() - battle.date.getEpochSecond());
+		if (difference > 10) return false;
 
 		if (!Objects.equals(winner, battle.winner)) return false;
 		if (!Objects.equals(loser, battle.loser)) return false;
@@ -101,10 +122,8 @@ public class Battle implements WritableComparable<Battle> {
 	@Override
 	public void write(DataOutput out) throws IOException {
 		out.writeUTF(date.toString());
-		out.writeUTF(game);
-		out.writeUTF(mode);
+		out.writeInt(gameModeType);
 		out.writeInt(round);
-		out.writeUTF(type);
 		winner.write(out);
 		loser.write(out);
 		out.writeInt(warclan);
@@ -113,10 +132,8 @@ public class Battle implements WritableComparable<Battle> {
 	@Override
 	public void readFields(DataInput in) throws IOException {
 		date = Instant.parse(in.readUTF());
-		game = in.readUTF();
-		mode = in.readUTF();
+		gameModeType = in.readInt();
 		round = in.readInt();
-		type = in.readUTF();
 		winner = new Player();
 		winner.readFields(in);
 		loser = new Player();
@@ -124,13 +141,8 @@ public class Battle implements WritableComparable<Battle> {
 		warclan = in.readInt();
 	}
 
-	@Override
-	public int compareTo(Battle o) {
-		return this.equals(o) ? 0 : (this.date.compareTo(o.date));
-	}
-
 	public boolean isValid() {
-		if (date == null || game == null || mode == null || type == null) return false;
+		if (date == null) return false;
 		if (winner == null || loser == null) return false;
 		if (!winner.isValid() || !loser.isValid()) return false;
 		return true;

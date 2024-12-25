@@ -3,7 +3,6 @@ package warclanstudy;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.apache.hadoop.io.WritableComparable;
 
-import javax.validation.constraints.NotNull;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;

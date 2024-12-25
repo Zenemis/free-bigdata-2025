@@ -75,6 +75,10 @@ public class WarClan implements WritableComparable<WarClan> {
 
 	@Override
 	public int compareTo(WarClan o) {
+		if (o == null) {
+			throw new NullPointerException("Cannot compare with null.");
+		}
+		if (this == o) return 0;
 		int cmp = Integer.compare(period, o.period);
 		if (cmp != 0) return cmp;
 
@@ -96,11 +100,7 @@ public class WarClan implements WritableComparable<WarClan> {
 		if (this == o) return true;
 		if (!(o instanceof WarClan)) return false;
 		WarClan warClan = (WarClan) o;
-		return day == warClan.day &&
-				hour_seg == warClan.hour_seg &&
-				period == warClan.period &&
-				training1 == warClan.training1 &&
-				training2 == warClan.training2;
+		return compareTo(warClan) == 0;
 	}
 
 	@Override

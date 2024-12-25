@@ -1,10 +1,12 @@
-package warclanstudy;
+package playerstudy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
@@ -14,48 +16,55 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
+import scala.xml.Null;
 
 import java.io.IOException;
 
-public class WarClanStudy {
+public class PlayerStudy {
     private static final long BLOCK_SIZE_MB = 128; // Taille du bloc en mégaoctets
+    private static int variant= 0 ;
 
-    public static class WCMapper
-            extends Mapper<Object, Text, WarClanData, NullWritable> {
+    // Mapper
+    public static class PlayerStudyMapper
+            extends Mapper<Object, Text, Text, NullWritable> {
 
         @Override
         public void map(Object key, Text value, Context context)
                 throws IOException, InterruptedException {
             ObjectMapper objectMapper = new ObjectMapper();
-
             String line = value.toString();
+
             GameData game = objectMapper.readValue(line, GameData.class);
-            if (game.existsWarclan()) context.write(game.warclan, NullWritable.get());
+            if (game.existsPlayers()) {
+                context.write(new Text(game.getWinner().tower), NullWritable.get());
+                context.write(new Text(game.getLoser().tower), NullWritable.get());
+            }
         }
     }
 
-    public static class WCReducer
-            extends Reducer<WarClanData, NullWritable, WarClanData, NullWritable> {
+    // Reducer
+    public static class PlayerStudyReducer
+            extends Reducer<Text, NullWritable, Text, NullWritable> {
 
         @Override
-        public void reduce(WarClanData key, Iterable<NullWritable> values, Context context)
+        public void reduce(Text key, Iterable<NullWritable> values, Context context)
                 throws IOException, InterruptedException {
             context.write(key, NullWritable.get());
         }
-
     }
 
+    // Main
     public static void main(String[] args) throws Exception {
         Configuration conf = new Configuration();
-        Job job = Job.getInstance(conf, "DataClean-siducamp-ibechoual");
-        job.setJarByClass(WarClanStudy.class);
+        Job job = Job.getInstance(conf, "PlayerStudy");
+        job.setJarByClass(PlayerStudy.class);
 
-        job.setMapperClass(WCMapper.class);
-        job.setMapOutputKeyClass(WarClanData.class);
+        job.setMapperClass(PlayerStudyMapper.class);
+        job.setMapOutputKeyClass(Text.class);
         job.setMapOutputValueClass(NullWritable.class);
 
-        job.setReducerClass(WCReducer.class);
-        job.setOutputKeyClass(WarClanData.class);
+        job.setReducerClass(PlayerStudyReducer.class);
+        job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(NullWritable.class);
 
         job.setInputFormatClass(TextInputFormat.class);
@@ -64,13 +73,17 @@ public class WarClanStudy {
         Path inputPath = new Path(args[0]);
         Path outputPath = new Path(args[1]);
 
+        if (args.length > 2) {
+            variant = Integer.parseInt(args[2]);
+        }
+
         FileInputFormat.addInputPath(job, inputPath);
         FileOutputFormat.setOutputPath(job, outputPath);
 
-        // Calculer la taille totale des fichiers d'entrée
+        // Calcul de la taille totale des fichiers d'entrée
         long totalInputSize = getInputSize(inputPath, conf);
 
-        // Calculer le nombre de reducers dynamiquement
+        // Calcul du nombre de reducers
         double nbOfBlocks = ((double) totalInputSize) / ((double) (BLOCK_SIZE_MB * 1024 * 1024));
         int numReducers = Math.max(1, (int) Math.ceil(nbOfBlocks));
         job.setNumReduceTasks(numReducers);
@@ -78,14 +91,7 @@ public class WarClanStudy {
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     }
 
-    /**
-     * Calcule la taille totale des fichiers d'entrée en octets.
-     *
-     * @param inputPath Le chemin d'entrée
-     * @param conf      La configuration Hadoop
-     * @return La taille totale des fichiers d'entrée en octets
-     * @throws IOException En cas d'erreur d'accès au système de fichiers
-     */
+    // Méthode pour calculer la taille totale des fichiers d'entrée
     private static long getInputSize(Path inputPath, Configuration conf) throws IOException {
         FileSystem fs = FileSystem.get(conf);
         long totalSize = 0;
