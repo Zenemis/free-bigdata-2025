@@ -10,6 +10,8 @@ import org.apache.hadoop.io.WritableComparable;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Player implements WritableComparable<Player> {
+	static private final short EMPTY_EVO = Short.MIN_VALUE;
+
 	public String utag;
 	public String ctag;
 	public int trophies;
@@ -18,8 +20,8 @@ public class Player implements WritableComparable<Player> {
 	public int league;
 	public int bestleague;
 	public long deck;
-	public String evo;
-	public String tower = "6e";
+	public short evo = EMPTY_EVO;
+	public byte tower = 0x6e;
 	public double strength;
 	public int crown;
 	public double elixir;
@@ -29,9 +31,25 @@ public class Player implements WritableComparable<Player> {
 	@JsonProperty("deck")
 	public void setDeck(String deck) {
 		if (deck == null || deck.length() != 16) {
-			throw new IllegalArgumentException("Invalid deck: must be non-null and at least 16 characters long.");
+			throw new IllegalArgumentException("Invalid deck: must be non-null and 16 characters long.");
 		}
 		this.deck = Long.parseLong(deck, 16); // Converts the hexadecimal string to a long
+	}
+
+	@JsonProperty("evo")
+	public void setEvo(String evo) {
+		if (evo == null || evo.length() > 4) {
+			throw new IllegalArgumentException("Invalid evo: must be non-null and at most 4 characters long.");
+		}
+		this.evo = (short) (Short.parseShort(evo, 16) & EMPTY_EVO);
+	}
+
+	@JsonProperty
+	public void setTower(String tower) {
+		if (tower == null || (!tower.isEmpty() && tower.length() != 2)) {
+			throw new IllegalArgumentException("Invalid tower: must be non-null and at most 2 characters long.");
+		}
+		this.tower = Byte.parseByte(tower, 16);
 	}
 
 	@Override
@@ -63,7 +81,6 @@ public class Player implements WritableComparable<Player> {
 		return Objects.hash(utag, ctag, evo, tower, deck, score, touch, elixir, strength, crown, league, bestleague, exp, trophies, ctrophies);
 	}
 
-	// TODO : compareTo complet
 	@Override
 	public int compareTo(Player o) {
 		if (o == null) {
@@ -131,8 +148,8 @@ public class Player implements WritableComparable<Player> {
 		out.writeInt(league);
 		out.writeInt(bestleague);
 		out.writeLong(deck);
-		out.writeUTF(evo != null ? evo : "");
-		out.writeUTF((tower != null && !tower.isEmpty()) ? tower : "6e");
+		out.writeShort(evo);
+		out.writeByte(tower);
 		out.writeDouble(strength);
 		out.writeInt(crown);
 		out.writeDouble(elixir);
@@ -150,8 +167,8 @@ public class Player implements WritableComparable<Player> {
 		league = in.readInt();
 		bestleague = in.readInt();
 		deck = in.readLong();
-		evo = in.readUTF();
-		tower = in.readUTF();
+		evo = in.readShort();
+		tower = in.readByte();
 		strength = in.readDouble();
 		crown = in.readInt();
 		elixir = in.readDouble();
@@ -160,9 +177,7 @@ public class Player implements WritableComparable<Player> {
 	}
 
 	public boolean isValid(){
-		if (touch == 0) return false;
-		if (evo == null || evo.length() > 2*2) return false;
-		return true;
+		return (touch != 0);
 	}
 
 }
