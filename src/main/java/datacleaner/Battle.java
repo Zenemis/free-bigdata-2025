@@ -1,70 +1,95 @@
 package datacleaner;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.hadoop.io.WritableComparable;
+
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.time.Instant;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
-import org.apache.hadoop.io.WritableComparable;
-
-/*
-{"date":"2024-09-13T07:27:05Z","game":"gdc","mode":"Rage_Ladder","round":0,"type":"riverRacePvP",
-"winner":0,
-"players":[{"utag":"#C82LPR8J","ctag":"#QQ9QGJYJ","trophies":9000,"ctrophies":1100,"exp":67,"league":6,
-"bestleague":10,
-"deck":"0a18323d4a4c616b",
-"evo":"0a18",
-"tower":"",
-"strength":15.375,
-"crown":2,
-"elixir":1.56,
-"touch":1,
-"score":200},
-{"utag":"#9UC2GUJVP","ctag":"#QQJCR9CP","trophies":7160,"ctrophies":1012,"exp":46,"league":1,"bestleague":4,"deck":"05070c14171f445e","evo":"","tower":"","strength":13,"crown":0,"elixir":6.14,"touch":1,"score":100}],"warclan":{"day":3,"hour_seg":3,"period":"112-1","training":[false,false]}}
-*/
-
+/**
+ * La classe BattleData représente une bataille avec ses détails associés,
+ * tels que la date, le gagnant, le jeu, le mode, le round, le type, les joueurs et le clan de guerre.
+ * Elle implémente l'interface WritableComparable pour être utilisée dans un contexte Hadoop.
+ */
 public class Battle implements WritableComparable<Battle> {
-	public Instant date;
-	public int gameModeType;
+
+	// Attributs représentant les données d'une bataille
+	public Instant date; // La date de la bataille, représentée par Instant
+	@JsonProperty("date")
+	public void setDate(String dateStr) {
+		try {
+			this.date = Instant.parse(dateStr);
+		} catch (DateTimeParseException e) {
+			throw new IllegalArgumentException("Invalid date format: " + dateStr, e);
+		}
+	}
+	public int winner;
+	public String game;
+	public String mode;
 	public int round;
-	public Player winner;
-	public Player loser;
-	public int warclan;
-
-	public Battle() {}
-
-	public Battle(BattleJson battleJson) {
-		this.date = Instant.parse(battleJson.date);
-		this.gameModeType = Objects.hash(battleJson.game, battleJson.mode, battleJson.type);
-		this.round = battleJson.round;
-		if (battleJson.players == null || battleJson.players.size() != 2) {
+	public String type;
+	public List<Player> players;
+	@JsonProperty("players")
+	public void setPlayers(List<Player> players) {
+		if (players == null || players.size() != 2) {
 			throw new IllegalArgumentException("Invalid players list: must contain exactly 2 players");
 		}
-		this.winner = battleJson.players.get(battleJson.winner);
-		this.loser = battleJson.players.get(Math.abs(battleJson.winner-1));
-		warclan = battleJson.warclan == null ? 0 : battleJson.warclan.toInt();
+		players.sort(Player::compareTo);
+		this.players = players;
 	}
+	public WarClan warclan;
 
+	/**
+	 * Retourne une représentation sous forme de chaîne de caractères de l'objet BattleData.
+	 *
+	 * @return La chaîne de caractères représentant les données de la bataille
+	 */
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("Battle{");
 		sb.append("date=").append(date);
-		sb.append(", gameModeType='").append(gameModeType).append('\'');
+		sb.append(", game='").append(game).append('\'');
+		sb.append(", mode='").append(mode).append('\'');
 		sb.append(", round=").append(round);
+		sb.append(", type='").append(type).append('\'');
 		sb.append(", winner=").append(winner);
-		sb.append(", loser=").append(loser);
 		sb.append(", warclan=").append(warclan);
 		sb.append('}');
 		return sb.toString();
 	}
-	
+
+	/**
+	 * Retourne le code de hachage pour l'objet BattleData.
+	 *
+	 * Hadoop se repose en grande partie sur cette méthode pour calculer la
+	 * bataille en tant que "clé", ce qui en fait une méthode de "pré-filtrage" :
+	 * Hadoop calcule les hashCode de 2 objets, et s'ils ont un hashCode différent,
+	 * ils sont considérés comme différents. Sinon, "eauals" est appelée.
+	 *
+	 * C'est avec ce mécanisme de comparaison rapide et d'insertion en clés que
+	 * Hadoop supprime les doublons.
+	 *
+	 * @return Le code de hachage calculé
+	 */
 	@Override
 	public int hashCode() {
-		return Objects.hash(gameModeType, round, winner, loser, warclan);
+		return Objects.hash(game, mode, round, type, players, warclan);
 	}
 
+	/**
+	 * Compare cet objet BattleData à un autre BattleData. La comparaison est à comprendre au sens
+	 * de la relation d'ordre.
+	 *
+	 * @param o L'objet BattleData à comparer
+	 * @return Un entier indiquant le résultat de la comparaison
+	 */
 	@Override
 	public int compareTo(Battle o) {
 		if (o == null) {
@@ -75,76 +100,127 @@ public class Battle implements WritableComparable<Battle> {
 		if (difference > 10)
 			return date.compareTo(o.date);
 
-		// Compare by gameModeType
-		int gameModeComparison = Integer.compare(gameModeType, o.gameModeType);
-		if (gameModeComparison != 0) {
-			return gameModeComparison;
+		// Compare by game
+		int gameComparison = game.compareTo(o.game);
+		if (gameComparison != 0) {
+			return gameComparison;
+		}
+		// Compare by mode
+		int modeComparison = mode.compareTo(o.mode);
+		if (modeComparison != 0) {
+			return modeComparison;
 		}
 		// Compare by round
 		int roundComparison = Integer.compare(round, o.round);
 		if (roundComparison != 0) {
 			return roundComparison;
 		}
-		// Compare by winner
-		int winnerComparison = winner.compareTo(o.winner);
-		if (winnerComparison != 0) {
-			return winnerComparison;
+		// Compare by type
+		int typeComparison = type.compareTo(o.type);
+		if (typeComparison != 0) {
+			return typeComparison;
 		}
-		// Compare by loser
-		int loserComparison = loser.compareTo(o.loser);
-		if (loserComparison != 0) {
-			return loserComparison;
+		// Compare by players
+		int playersComparison = 0;
+		for (int i=0 ; i<players.size() ; i++) {
+			playersComparison = players.get(i).compareTo(o.players.get(i));
+			if (playersComparison != 0) return playersComparison;
 		}
+
 		// Compare by warclan
-		return Integer.compare(warclan, o.warclan);
+		return warclan.compareTo(o.warclan);
 	}
 
-
+	/**
+	 * Vérifie si cet objet BattleData est égal à un autre objet.
+	 * L'égalité est déterminée en fonction de tous les attributs de la bataille,
+	 * à l'exception de la date (comparée à une différence de 10 secondes).
+	 *
+	 * @param o L'objet à comparer
+	 * @return true si les objets sont égaux, false sinon
+	 */
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
 		Battle battle = (Battle) o;
 		if (round != battle.round) return false;
-		if (gameModeType != battle.gameModeType) return false;
-		if (warclan != battle.warclan) return false;
+		if (!Objects.equals(mode, battle.mode)) return false;
+		if (!Objects.equals(game, battle.game)) return false;
+		if (!Objects.equals(type, battle.type)) return false;
 
-		// Compare the date with a tolerance of 10 seconds
 		long difference = Math.abs(date.getEpochSecond() - battle.date.getEpochSecond());
-		if (difference > 10) return false;
+		if (difference > 10)
+			return false;
 
-		if (!Objects.equals(winner, battle.winner)) return false;
-		if (!Objects.equals(loser, battle.loser)) return false;
-
+		if (!Objects.equals(players.get(winner), battle.players.get(battle.winner))) return false;
+		if (!Objects.equals(players.get(battle.winner), battle.players.get(winner))) return false;
+		if (!Objects.equals(warclan, battle.warclan)) return false;
 		return true;
 	}
 
+	/**
+	 * Écrit les données de l'objet BattleData dans un flux de sortie.
+	 *
+	 * @param out Le flux de sortie dans lequel écrire les données
+	 * @throws IOException Si une erreur d'écriture se produit
+	 */
 	@Override
 	public void write(DataOutput out) throws IOException {
 		out.writeUTF(date.toString());
-		out.writeInt(gameModeType);
+		out.writeInt(winner);
+		out.writeUTF(game);
+		out.writeUTF(mode);
 		out.writeInt(round);
-		winner.write(out);
-		loser.write(out);
-		out.writeInt(warclan);
+		out.writeUTF(type);
+		out.writeInt(players.size());
+		for (Player player : players) {
+			player.write(out);
+		}
+		if (warclan != null)
+			warclan.write(out);
+		else
+			WarClan.writeEmpty(out);
 	}
 
+	/**
+	 * Lit les données d'un objet BattleData depuis un flux d'entrée.
+	 *
+	 * @param in Le flux d'entrée à partir duquel lire les données
+	 * @throws IOException Si une erreur de lecture se produit
+	 */
 	@Override
 	public void readFields(DataInput in) throws IOException {
 		date = Instant.parse(in.readUTF());
-		gameModeType = in.readInt();
+		winner = in.readInt();
+		game = in.readUTF();
+		mode = in.readUTF();
 		round = in.readInt();
-		winner = new Player();
-		winner.readFields(in);
-		loser = new Player();
-		loser.readFields(in);
-		warclan = in.readInt();
+		type = in.readUTF();
+		players = new ArrayList<>();
+		int size = in.readInt();
+		for (int i = 0; i < size; i++) {
+			Player player = new Player();
+			player.readFields(in);
+			players.add(player);
+		}
+		warclan = new WarClan();
+		warclan.readFields(in); // Assuming WarClanData implements Writable
 	}
 
+	/**
+	 * Vérifie si les données de la bataille sont valides.
+	 * La validité est définie par la présence des informations essentielles et la validité des joueurs et du clan de guerre.
+	 *
+	 * @return true si les données sont valides, false sinon
+	 */
 	public boolean isValid() {
-		if (date == null) return false;
-		if (winner == null || loser == null) return false;
-		if (!winner.isValid() || !loser.isValid()) return false;
+		if (date == null || game == null || mode == null || type == null) return false;
+		if (players == null || players.size() < 2) return false; // Assuming players has at least 2 entries
+		for (Player player : players) {
+			if (!player.isValid()) return false;
+		}
+		if (warclan != null && !warclan.isValid()) return false;
 		return true;
 	}
 }
