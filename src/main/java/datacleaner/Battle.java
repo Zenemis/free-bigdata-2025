@@ -1,6 +1,8 @@
 package datacleaner;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.hadoop.io.WritableComparable;
 
 import java.io.DataInput;
@@ -52,17 +54,39 @@ public class Battle implements WritableComparable<Battle> {
 	 */
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("Battle{");
-		sb.append("date=").append(date);
-		sb.append(", game='").append(game).append('\'');
-		sb.append(", mode='").append(mode).append('\'');
-		sb.append(", round=").append(round);
-		sb.append(", type='").append(type).append('\'');
-		sb.append(", winner=").append(winner);
-		sb.append(", warclan=").append(warclan);
-		sb.append('}');
-		return sb.toString();
+		StringBuilder json = new StringBuilder();
+		json.append("{");
+
+		json.append("\"date\":").append(date != null ? "\"" + date + "\"" : null).append(",");
+		json.append("\"winner\":").append(winner).append(",");
+		json.append("\"game\":").append(game != null ? "\"" + escapeJson(game) + "\"" : null).append(",");
+		json.append("\"mode\":").append(mode != null ? "\"" + escapeJson(mode) + "\"" : null).append(",");
+		json.append("\"round\":").append(round).append(",");
+		json.append("\"type\":").append(type != null ? "\"" + escapeJson(type) + "\"" : null).append(",");
+
+		json.append("\"players\":[");
+		if (players != null && !players.isEmpty()) {
+			for (int i = 0; i < players.size(); i++) {
+				json.append(players.get(i).toString());
+				if (i < players.size() - 1) {
+					json.append(",");
+				}
+			}
+		}
+		json.append("],");
+
+		json.append("\"warclan\":").append(warclan != null && warclan.isValid() ? warclan.toString() : null);
+
+		json.append("}");
+		return json.toString();
+	}
+
+	private String escapeJson(String value) {
+		return value.replace("\\", "\\\\")
+				.replace("\"", "\\\"")
+				.replace("\n", "\\n")
+				.replace("\r", "\\r")
+				.replace("\t", "\\t");
 	}
 
 	/**

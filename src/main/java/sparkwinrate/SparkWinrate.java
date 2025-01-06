@@ -1,6 +1,7 @@
 package sparkwinrate;
 
 import datacleaner.Battle;
+import org.apache.hadoop.fs.Path;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
@@ -12,7 +13,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.Collections;
+
+import org.apache.hadoop.fs.FileSystem;
 
 import static sparkwinrate.DeckGenerator.generateCombinations;
 import static sparkwinrate.DeckGenerator.treatCombination;
@@ -29,7 +32,8 @@ public class SparkWinrate {
         //final int[] CARDSGRAMS = { 1,  2, 3,  4, 3, 6, 7, 8 };
         final int[] CARDSCOMBI = { 8, 28, 56, 70, 56, 28, 8, 1 };
 
-        String path = args[0];
+        String inputPath = args[0];
+        String outputPath = args[1];
 
         ArrayList<ArrayList<ArrayList<Integer>>> combs = new ArrayList<>();
 
@@ -39,7 +43,7 @@ public class SparkWinrate {
 
         SparkConf conf = new SparkConf().setAppName("Winrate Calculator");
         JavaSparkContext sc = new JavaSparkContext(conf);
-        DataReader dataReader = new DataReader(path);
+        DataReader dataReader = new DataReader(inputPath);
 
         JavaRDD<Battle> clean = dataReader.getDistinctBattles(sc);
 
@@ -48,10 +52,10 @@ public class SparkWinrate {
                     || (Math.abs(x.players.get(0).strength - x.players.get(1).strength)) > 0.75
                     || x.players.get(0).touch != 1 || x.players.get(1).touch != 1
             )
-                return new ArrayList<Tuple2<String, Deck>>().iterator();
+                return Collections.emptyIterator();
 
             if ((x.players.get(0).bestleague < 6 || x.players.get(1).bestleague < 6))
-                return new ArrayList<Tuple2<String, Deck>>().iterator();
+                return Collections.emptyIterator();
 
             ArrayList<String> tmp1 = new ArrayList<>();
             for (int i = 0; i < 8; ++i)
@@ -66,53 +70,35 @@ public class SparkWinrate {
             return res.iterator();
         }).cache();
 
-        //System.out.println("rdd decks generated : " + rdddecks.count());
+        System.out.println("rdd decks generated : " + rdddecks.count());
 
         final int PLAYERS = 10;
         final int BATTLES = 80;
 
         JavaRDD<Deck> stats = rdddecks.reduceByKey(Deck::merge).values()
-                .filter((Deck x) -> {
-                    if (x.id.length() == 16)
-                        return x.players.size() >= PLAYERS && x.count >= BATTLES;
-                    else
-                        return x.players.size() >= PLAYERS && x.count >= BATTLES;
-                });
+                .filter((Deck x) -> x.players.size() >= PLAYERS && x.count >= BATTLES);
 
-        //System.out.println("rdd decks reduced : " + stats.count());
+        System.out.println("rdd decks reduced : " + stats.count());
 
-        ArrayList<JavaRDD<Deck>> statistics = new ArrayList<JavaRDD<Deck>>();
+        ArrayList<JavaRDD<Deck>> statistics = new ArrayList<>();
         for (int cn : CARDSGRAMS) {
             statistics.add(stats.filter((Deck x) -> x.id.length() / 2 == cn));
-        }
-        class WinrateComparator implements Comparator<Deck>, Serializable {
-            @Override
-            public int compare(Deck x, Deck y) {
-                if (y.count == 0 && x.count != 0)
-                    return 1;
-                if (x.count == 0 && y.count != 0)
-                    return -1;
-                if (x.count == 0 && y.count == 0)
-                    return 0;
-                if ((double) x.win / x.count > (double) y.win / y.count)
-                    return 1;
-                else if ((double) x.win / x.count < (double) y.win / y.count)
-                    return -1;
-                return 0;
-            }
         }
 
         final int NB_DECKS = 100000;
 
-        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
-                Files.newOutputStream(Paths.get("best_deck.json")), StandardCharsets.UTF_8))) {
+        try (
+            FileSystem fs = FileSystem.get(sc.hadoopConfiguration());
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
+                fs.create(new Path(outputPath), true), StandardCharsets.UTF_8))
+        ) {
             writer.write("{\n");
 
             boolean firsta = true;
 
-//            for (int i = 0; i < CARDSGRAMS.length; ++i) {
-//                System.out.println("kgram " + i + " > " + statistics.get(i).count());
-//            }
+            for (int i = 0; i < CARDSGRAMS.length; ++i) {
+                System.out.println("kgram " + i + " > " + statistics.get(i).count());
+            }
 
             for (int i = 0; i < CARDSGRAMS.length; ++i) {
                 if (!firsta)
@@ -131,9 +117,18 @@ public class SparkWinrate {
                 writer.write("]\n}");
             }
             writer.write("}\n");
+            System.out.println("Job has finished with no issues");
         } catch (IOException ex) {
-            // Report
+            System.err.println("ERROR: " + ex.getMessage());
         }
+
+        File outputFile = new File(outputPath);
+        if (outputFile.exists() && !outputFile.isDirectory()) {
+            System.out.println("Fichier de sortie créé avec succès : " + outputFile.getAbsolutePath());
+        } else {
+            System.err.println("Échec de la création du fichier de sortie.");
+        }
+
         /* ignore */
         System.out.println("OK !!!!!!!!!!!!");
         sc.close();

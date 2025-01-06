@@ -16,6 +16,16 @@ public class WarClan implements WritableComparable<WarClan> {
     public List<Boolean> training;
 
     @Override
+    public String toString() {
+        return "{" +
+                "\"period\": \"" + period + "\", " +
+                "\"day\": " + day + ", " +
+                "\"hour_seg\": " + hour_seg + ", " +
+                "\"training\": " + training.toString() +
+                "}";
+    }
+
+    @Override
     public int hashCode() {
         return Objects.hash(period, day, hour_seg, training);
     }
@@ -79,7 +89,8 @@ public class WarClan implements WritableComparable<WarClan> {
     }
 
     public boolean isValid() {
-        return day >= 0 && day <= 6 &&
+        return period != null && !period.isEmpty() &&
+                day >= 0 && day <= 6 &&
                 hour_seg >= 0 && hour_seg <= 23;
     }
 }

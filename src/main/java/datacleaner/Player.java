@@ -26,26 +26,25 @@ public class Player implements WritableComparable<Player> {
 
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("Player{");
-		sb.append("utag='").append(utag).append('\'');
-		sb.append(", ctag='").append(ctag).append('\'');
-		sb.append(", trophies=").append(trophies);
-		sb.append(", ctrophies=").append(ctrophies);
-		sb.append(", exp=").append(exp);
-		sb.append(", league=").append(league);
-		sb.append(", bestleague=").append(bestleague);
-		sb.append(", deck=").append(deck);
-		sb.append(", evo='").append(evo).append('\'');
-		sb.append(", tower='").append(tower).append('\'');
-		sb.append(", strength=").append(strength);
-		sb.append(", crown=").append(crown);
-		sb.append(", elixir=").append(elixir);
-		sb.append(", touch=").append(touch);
-		sb.append(", score=").append(score);
-		sb.append('}');
-		return sb.toString();
+		return "{" +
+				"\"utag\": \"" + (utag != null ? utag : "") + "\"," +
+				"\"ctag\": \"" + (ctag != null ? ctag : "") + "\"," +
+				"\"trophies\": " + trophies + "," +
+				"\"ctrophies\": " + ctrophies + "," +
+				"\"exp\": " + exp + "," +
+				"\"league\": " + league + "," +
+				"\"bestleague\": " + bestleague + "," +
+				"\"deck\": \"" + (deck != null ? deck : "") + "\"," +
+				"\"evo\": \"" + (evo != null ? evo : "") + "\"," +
+				"\"tower\": \"" + (tower != null ? tower : "6e") + "\"," +
+				"\"strength\": " + strength + "," +
+				"\"crown\": " + crown + "," +
+				"\"elixir\": " + elixir + "," +
+				"\"touch\": " + touch + "," +
+				"\"score\": " + score +
+				"}";
 	}
+
 
 	@Override
 	public int hashCode() {
