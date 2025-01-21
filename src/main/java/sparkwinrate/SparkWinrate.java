@@ -15,7 +15,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 
-
 public class SparkWinrate {
     /*
      * Read battles from the master data sets then compute statistics for each decks
@@ -27,33 +26,68 @@ public class SparkWinrate {
         String inputPath = args[0];
         String outputPath = args[1];
 
+        System.out.println("Starting SparkWinrate");
+
         SparkConf conf = new SparkConf().setAppName("Winrate Calculator");
         JavaSparkContext sc = new JavaSparkContext(conf);
         DataReader dataReader = new DataReader(inputPath);
 
         // All battles
-        JavaRDD<Battle> duelRDD = dataReader.getDistinctBattles(sc);
+        JavaRDD<Battle> duelRDD = dataReader
+                .getDistinctBattles(sc)
+                .cache();
 
-        // Get wins
+        // Log the number of battles loaded
+        System.out.println("Number of battles loaded: " + duelRDD.count());
+
+        // Log first few battles for inspection
+        duelRDD.take(5).forEach(duel -> System.out.println("Battle: " + duel));
+
+        // Get wins$
+        System.out.println("Computing wins");
         JavaPairRDD<String, Integer> wins = duelRDD
-                .mapToPair(duel -> new Tuple2<>(duel.players.get(duel.winner).deck, 1))
+                .mapToPair(duel -> {
+                    String winnerDeck = duel.players.get(duel.winner).deck;
+                    return new Tuple2<>(winnerDeck, 1);
+                })
                 .reduceByKey(Integer::sum);
 
         // Get losses
+        System.out.println("Computing losses");
         JavaPairRDD<String, Integer> losses = duelRDD
-                .mapToPair(duel -> new Tuple2<>(duel.players.get(duel.winner == 0 ? 1 : 0).deck, 1))
+                .mapToPair(duel -> {
+                    String loserDeck = duel.players.get(duel.winner == 0 ? 1 : 0).deck;
+                    return new Tuple2<>(loserDeck, 1);
+                })
                 .reduceByKey(Integer::sum);
 
         // Get winrates
+        System.out.println("Computing winrates as ratio");
         JavaPairRDD<String, Tuple2<Integer, Integer>> winratesStruct = wins
-                .fullOuterJoin(losses).mapValues((tuple) -> new Tuple2<>(tuple._1.get(), tuple._2.get()));
+                .fullOuterJoin(losses)
+                .mapValues(tuple -> {
+                    int winsCount = tuple._1.orElse(0);
+                    int lossesCount = tuple._2.orElse(0);
+                    return new Tuple2<>(winsCount, lossesCount);
+                });
+
+        // Compute winrates
+        System.out.println("Computing winrates as double");
         JavaPairRDD<String, Double> winrates = winratesStruct
-                .mapValues((tuple) -> (double) (tuple._1 / (tuple._1 + tuple._2)));
+                .mapValues(tuple -> {
+                    int winsCount = tuple._1;
+                    int lossesCount = tuple._2;
+                    double winrate = lossesCount == 0 ? 1.0 : (double) winsCount / (winsCount + lossesCount);
+                    return winrate;
+                })
+                .cache();
 
+        // Log some final winrates
+        winrates.take(20).forEach(entry -> System.out.println("Final Winrate: " + entry._1 + " -> " + entry._2));
 
+        // Write the winrates to the output file
         writeToFile(outputPath, winrates.collect());
 
-        /* ignore */
         System.out.println("OK !!!!!!!!!!!!");
         sc.close();
     }
@@ -84,6 +118,5 @@ public class SparkWinrate {
         } catch (IOException ex) {
             ex.printStackTrace(); // Print the stack trace to identify the issue
         }
-
     }
 }

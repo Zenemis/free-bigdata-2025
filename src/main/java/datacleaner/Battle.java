@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.hadoop.io.WritableComparable;
+import scala.Serializable;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -19,7 +20,7 @@ import java.util.Objects;
  * tels que la date, le gagnant, le jeu, le mode, le round, le type, les joueurs et le clan de guerre.
  * Elle implémente l'interface WritableComparable pour être utilisée dans un contexte Hadoop.
  */
-public class Battle implements WritableComparable<Battle> {
+public class Battle implements WritableComparable<Battle>, Serializable {
 
 	// Attributs représentant les données d'une bataille
 	public Instant date; // La date de la bataille, représentée par Instant

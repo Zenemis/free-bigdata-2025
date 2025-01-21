@@ -1,13 +1,15 @@
 package datacleaner;
 
+import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.io.WritableComparable;
+import scala.Serializable;
 
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.util.Objects;
 
-public class Player implements WritableComparable<Player> {
+public class Player implements WritableComparable<Player>, Serializable {
 	public String utag;
 	public String ctag;
 	public int trophies;

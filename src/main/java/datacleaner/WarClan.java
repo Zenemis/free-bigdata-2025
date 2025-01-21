@@ -1,6 +1,7 @@
 package datacleaner;
 
 import org.apache.hadoop.io.WritableComparable;
+import scala.Serializable;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -9,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class WarClan implements WritableComparable<WarClan> {
+public class WarClan implements WritableComparable<WarClan>, Serializable {
     public String period;
     public int day = 0;
     public int hour_seg = 0;
