@@ -28,10 +28,10 @@ public class DataReader {
         this.weeks = 9;
     }
 
-    public static JavaRDD<Battle> getDistinctRawBattles(JavaSparkContext sc) {
+    public JavaRDD<Battle> getDistinctRawBattles(JavaSparkContext sc) {
         int weeks = WEEKS;
 
-        JavaRDD<String> rdd = sc.textFile("./data_ple/clashroyale2024/clash_big.nljson").filter((x) -> {
+        JavaRDD<String> rdd = sc.textFile(path).filter((x) -> {
             return !x.isEmpty();
         });
         //System.out.println("battles " + rdd.count());
