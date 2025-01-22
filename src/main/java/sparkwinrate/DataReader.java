@@ -26,7 +26,7 @@ public class DataReader {
 
     public JavaRDD<Battle> getDistinctBattles(JavaSparkContext sc) {
         // Lecture des fichiers JSON Hadoop dans le dossier ./it360/clean-big.txt
-        JavaRDD<String> rdd = sc.textFile(path).filter((x) -> !x.isEmpty());
+        JavaRDD<String> rdd = sc.textFile(path).filter((x) -> !x.isEmpty() && !x.equals("test"));
 
         // Transformation des JSON en objets Battle
         ObjectMapper mapper = new ObjectMapper();
