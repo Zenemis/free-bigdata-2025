@@ -1,7 +1,6 @@
 package sparkwinrate;
 
 import datacleaner.Battle;
-import org.apache.hadoop.fs.Path;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
@@ -15,21 +14,20 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 
-import org.apache.hadoop.fs.FileSystem;
-
 import static sparkwinrate.DeckGenerator.generateCombinations;
 import static sparkwinrate.DeckGenerator.treatCombination;
 
 public class SparkWinrate {
     /*
-     * Read battles from the master data sets then compute statistics for each decks
-     * subdecks can be also computes (1 2 3 4 ... ) cards by passing the argument.
-     * each time statistics about the best evolution and best towers card are
-     * provided
+     * Read battles from the master data sets then compute statistics for each deck.
+     * Subdecks can also be computed (1 2 3 4 ... ) cards by passing the argument.
+     * Each time statistics about the best evolution and best towers card are
+     * provided.
      */
     public static void main(String[] args) {
-        final int[] CARDSGRAMS = { 4,  6, 7, 8 };
-        //final int[] CARDSGRAMS = { 1,  2, 3,  4, 3, 6, 7, 8 };
+        long startTime = System.currentTimeMillis(); // Start timing
+
+        final int[] CARDSGRAMS = { 4, 6, 7, 8 };
         final int[] CARDSCOMBI = { 8, 28, 56, 70, 56, 28, 8, 1 };
 
         String inputPath = args[0];
@@ -88,9 +86,7 @@ public class SparkWinrate {
         final int NB_DECKS = 100000;
 
         try (
-            FileSystem fs = FileSystem.get(sc.hadoopConfiguration());
-            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
-                fs.create(new Path(outputPath), true), StandardCharsets.UTF_8))
+                BufferedWriter writer = Files.newBufferedWriter(Paths.get(outputPath), StandardCharsets.UTF_8)
         ) {
             writer.write("{\n");
 
@@ -129,8 +125,9 @@ public class SparkWinrate {
             System.err.println("Échec de la création du fichier de sortie.");
         }
 
-        /* ignore */
-        System.out.println("OK !!!!!!!!!!!!");
         sc.close();
+
+        long endTime = System.currentTimeMillis(); // End timing
+        System.out.println("Durée d'exécution : " + (endTime - startTime) + " ms");
     }
 }
