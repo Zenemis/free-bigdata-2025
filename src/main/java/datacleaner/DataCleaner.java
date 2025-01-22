@@ -42,10 +42,6 @@ public class DataCleaner {
             ObjectMapper objectMapper = new ObjectMapper();
             Battle battle = objectMapper.readValue(value.toString(), Battle.class);
 
-            // Si l'objet BattleData est valide, on l'écrit dans le contexte
-            if (battle.isValid()) {
-                context.write(battle, NullWritable.get());
-            }
         }
     }
 
