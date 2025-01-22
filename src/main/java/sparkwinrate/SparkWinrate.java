@@ -43,7 +43,7 @@ public class SparkWinrate {
         JavaSparkContext sc = new JavaSparkContext(conf);
         DataReader dataReader = new DataReader(inputPath);
 
-        JavaRDD<Battle> clean = dataReader.getDistinctBattles(sc);
+        JavaRDD<Battle> clean = dataReader.getDistinctRawBattles(sc);
 
         JavaPairRDD<String, Deck> rdddecks = clean.flatMapToPair((x) -> {
             if (x.players.get(0).deck.length() != 16 || x.players.get(1).deck.length() != 16
