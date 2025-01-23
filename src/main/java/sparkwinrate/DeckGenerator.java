@@ -32,28 +32,30 @@ public class DeckGenerator {
 	}
 
 	public static ArrayList<ArrayList<Integer>> generateCombinations(int n, int k) {
-		ArrayList<Integer> elements = new ArrayList<Integer>();
-		for (int x = 0; x < n; ++x)
-			elements.add(x);
-
-		ArrayList<ArrayList<Integer>> result = new ArrayList<ArrayList<Integer>>();
-		generate(new ArrayList<Integer>(), 0, elements, k, result);
-		return result;
+	    ArrayList<ArrayList<Integer>> result = new ArrayList<>();
+	    int[] combination = new int[k];
+	    for (int i = 0; i < k; i++) {
+	        combination[i] = i;
+	    }
+	    while (combination[k - 1] < n) {
+	        ArrayList<Integer> currentCombination = new ArrayList<>();
+	        for (int i : combination) {
+	            currentCombination.add(i);
+	        }
+	        result.add(currentCombination);
+	        int t = k - 1;
+	        while (t != 0 && combination[t] == n - k + t) {
+	            t--;
+	        }
+	        combination[t]++;
+	        for (int i = t + 1; i < k; i++) {
+	            combination[i] = combination[i - 1] + 1;
+	        }
+	    }
+	    return result;
 	}
 
-	private static void generate(ArrayList<Integer> current, int start, ArrayList<Integer> elements, int k,
-			ArrayList<ArrayList<Integer>> result) {
-		if (current.size() == k) {
-			result.add(new ArrayList<>(current));
-			return;
-		}
-		for (int i = start; i < elements.size(); i++) {
-			current.add(elements.get(i));
-			generate(current, i + 1, elements, k, result);
-			current.remove(current.size() - 1);
-		}
-	}
-/*
+	/*
 {"date":"2024-09-26T11:29:09Z","game":"gdc","mode":"CW_Battle_1v1","round":0,"type":"riverRacePvP","winner":1,"players":[{"utag":"#YLUGLG29L","ctag":"#YCCQULJ0","trophies":9000,"ctrophies":5066,"exp":57,"league":8,"bestleague":9,"deck":"000b2f3138565a5e","evo":"0b","tower":"","strength":14.4375,"crown":1,"elixir":1.01,"touch":1,"score":100},{"utag":"#JU0VQRQU","ctag":"#YC8R0RJ0","trophies":9000,"ctrophies":5442,"exp":63,"league":9,"bestleague":9,"deck":"0d25374045596062","evo":"3740","tower":"","strength":15.25,"crown":2,"elixir":1.48,"touch":1,"score":200}],"warclan":{"day":3,"hour_seg":0,"period":"112-3","training":[false,false]}}
 {"date":"2024-09-26T11:29:08Z","game":"gdc","mode":"CW_Battle_1v1","round":0,"type":"riverRacePvP","winner":0,"players":[{"utag":"#JU0VQRQU","ctag":"#YC8R0RJ0","trophies":9000,"ctrophies":5442,"exp":63,"league":9,"bestleague":9,"deck":"0d25374045596062","evo":"3740","tower":"","strength":15.25,"crown":2,"elixir":1.48,"touch":1,"score":200},{"utag":"#YLUGLG29L","ctag":"#YCCQULJ0","trophies":9000,"ctrophies":5066,"exp":57,"league":8,"bestleague":9,"deck":"000b2f3138565a5e","evo":"0b","tower":"","strength":14.4375,"crown":1,"elixir":1.01,"touch":1,"score":100}],"warclan":{"day":3,"hour_seg":0,"period":"112-3","training":[false,false]}}
 */
