@@ -21,26 +21,18 @@ public class DataReader {
 
     public DataReader(String path) {
         this.path = path;
-        this.weeks = 9;
+        this.weeks = WEEKS; 
     }
 
     public JavaRDD<Battle> getDistinctBattles(JavaSparkContext sc) {
-        // Lecture des fichiers JSON Hadoop
-        JavaRDD<String> rdd = sc.textFile(path).filter((x) -> !x.isEmpty() && !x.equals("test"));
+        // Lecture des fichiers JSON Hadoop dans le dossier ./it360/clean-big.txt
+        JavaRDD<String> rdd = sc.textFile(path).filter((x) -> !x.isEmpty());
 
         // Transformation des JSON en objets Battle
         ObjectMapper mapper = new ObjectMapper();
-        JavaRDD<Battle> rddpair = rdd.flatMap((x) -> {
-            try {
-                // Tente de convertir la ligne en objet Battle
-                Battle battle = mapper.readValue(x, Battle.class);
-                return java.util.Collections.singletonList(battle).iterator();
-            } catch (Exception e) {
-                // En cas d'erreur, log la ligne problématique (optionnel)
-                System.err.println("Invalid JSON: " + x);
-                return java.util.Collections.emptyIterator();
-            }
-        }).filter((battle) -> battle.winner == 0 || battle.winner == 1);
+        JavaRDD<Battle> rddpair = rdd.map((x) ->
+            mapper.readValue(x, Battle.class)
+        );
 
         // Filtrage des batailles selon la fenêtre temporelle
         Instant sliding_window = Instant.now().minusSeconds(3600L * 24 * 7 * weeks);
