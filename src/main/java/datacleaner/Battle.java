@@ -240,6 +240,7 @@ public class Battle implements WritableComparable<Battle>, Serializable {
 	 * @return true si les données sont valides, false sinon
 	 */
 	public boolean isValid() {
+		if (winner != 0 && winner != 1) return false;
 		if (date == null || game == null || mode == null || type == null) return false;
 		if (players == null || players.size() < 2) return false; // Assuming players has at least 2 entries
 		for (Player player : players) {

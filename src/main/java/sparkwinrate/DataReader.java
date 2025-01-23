@@ -40,7 +40,7 @@ public class DataReader {
 
         rddpair = rddpair.filter((Battle x) -> {
             Instant inst = x.date;
-            return inst.isAfter(sliding_window) && inst.isAfter(collect_start);
+            return (x.winner == 1 || x.winner == 0) && inst.isAfter(sliding_window) && inst.isAfter(collect_start);
         });
 
         return rddpair;

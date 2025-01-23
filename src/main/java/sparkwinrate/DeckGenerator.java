@@ -22,6 +22,7 @@ import scala.Tuple2;
 public class DeckGenerator {
 
 	public static String choiceInDeck(String deck, List<Integer> elements) {
+		if (deck.length() != 16) return null;
 		if (elements.size() == 8) return deck;
 		StringBuilder result = new StringBuilder();
 		for (int index : elements) {
@@ -54,46 +55,4 @@ public class DeckGenerator {
 	    }
 	    return result;
 	}
-
-	/*
-{"date":"2024-09-26T11:29:09Z","game":"gdc","mode":"CW_Battle_1v1","round":0,"type":"riverRacePvP","winner":1,"players":[{"utag":"#YLUGLG29L","ctag":"#YCCQULJ0","trophies":9000,"ctrophies":5066,"exp":57,"league":8,"bestleague":9,"deck":"000b2f3138565a5e","evo":"0b","tower":"","strength":14.4375,"crown":1,"elixir":1.01,"touch":1,"score":100},{"utag":"#JU0VQRQU","ctag":"#YC8R0RJ0","trophies":9000,"ctrophies":5442,"exp":63,"league":9,"bestleague":9,"deck":"0d25374045596062","evo":"3740","tower":"","strength":15.25,"crown":2,"elixir":1.48,"touch":1,"score":200}],"warclan":{"day":3,"hour_seg":0,"period":"112-3","training":[false,false]}}
-{"date":"2024-09-26T11:29:08Z","game":"gdc","mode":"CW_Battle_1v1","round":0,"type":"riverRacePvP","winner":0,"players":[{"utag":"#JU0VQRQU","ctag":"#YC8R0RJ0","trophies":9000,"ctrophies":5442,"exp":63,"league":9,"bestleague":9,"deck":"0d25374045596062","evo":"3740","tower":"","strength":15.25,"crown":2,"elixir":1.48,"touch":1,"score":200},{"utag":"#YLUGLG29L","ctag":"#YCCQULJ0","trophies":9000,"ctrophies":5066,"exp":57,"league":8,"bestleague":9,"deck":"000b2f3138565a5e","evo":"0b","tower":"","strength":14.4375,"crown":1,"elixir":1.01,"touch":1,"score":100}],"warclan":{"day":3,"hour_seg":0,"period":"112-3","training":[false,false]}}
-*/
-	/*
-	 * Read battles from the master data sets then compute statistics for each decks
-	 * subdecks can be also computes (1 2 3 4 ... ) cards by passing the argument.
-	 * each time statistics about the best evolution and best towers card are
-	 * provided
-	 */
-
-	public static void treatCombination(Battle x, ArrayList<String> tmp1, ArrayList<String> tmp2,
-										 ArrayList<Tuple2<String, Deck>> res, ArrayList<Integer> cmb) {
-		StringBuilder c1 = new StringBuilder();
-		StringBuilder c2 = new StringBuilder();
-		for (int i : cmb) {
-			c1.append(tmp1.get(i));
-			c2.append(tmp2.get(i));
-		}
-		Deck d1;
-		Deck d2;
-	if (cmb.size() == 8) {		
-		d1 = new Deck(c1.toString(), x.players.get(0).evo, x.players.get(0).tower, 1, x.winner,
-				x.players.get(0).strength - x.players.get(1).strength, x.players.get(0).utag,
-				x.players.get(0).league, x.players.get(0).ctrophies);
-		d2 = new Deck(c2.toString(), x.players.get(1).evo, x.players.get(1).tower, 1, 1 - x.winner,
-				x.players.get(1).strength - x.players.get(0).strength, x.players.get(1).utag,
-				x.players.get(1).league, x.players.get(1).ctrophies);
-	}
-	else {
-		d1 = new Deck(c1.toString(), "", "", 1, x.winner,
-				x.players.get(0).strength - x.players.get(1).strength, x.players.get(0).utag,
-				x.players.get(0).league, x.players.get(0).ctrophies);
-		d2 = new Deck(c2.toString(), "", "", 1, 1 - x.winner,
-				x.players.get(1).strength - x.players.get(0).strength, x.players.get(1).utag,
-				x.players.get(1).league, x.players.get(1).ctrophies);
-	}
-		res.add(new Tuple2<>(d1.id, d1));
-		res.add(new Tuple2<>(d2.id, d2));
-	}
-
 }

@@ -5,8 +5,6 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import scala.Array;
-import scala.Int;
 import scala.Tuple2;
 
 import java.io.BufferedWriter;
@@ -53,7 +51,10 @@ public class SparkWinrate {
 
         for (int k = 1; k <= NGRAM_MAX; k++) {
 
-            ArrayList<ArrayList<Integer>> ngrams = DeckGenerator.generateCombinations(k, NGRAM_MAX);
+            ArrayList<ArrayList<Integer>> ngrams = DeckGenerator.generateCombinations(NGRAM_MAX, k);
+
+            // Log which ngram we treating
+            System.out.println("Ngrams loaded: " + ngrams);
 
             // Get wins
             System.out.println("Computing wins");
@@ -61,8 +62,10 @@ public class SparkWinrate {
                     .flatMapToPair(duel -> {
                         List<Tuple2<String, Integer>> winPairs = new ArrayList<>();
                         for (ArrayList<Integer> ngram : ngrams) {
-                            String winnerDeck = DeckGenerator.choiceInDeck(duel.players.get(duel.winner).deck, ngram);
-                            winPairs.add(new Tuple2<>(winnerDeck, 1));
+                            int winner = duel.winner;
+                            String deck = duel.players.get(winner).deck;
+                            String winnerDeck = DeckGenerator.choiceInDeck(deck, ngram);
+                            if (winnerDeck != null) winPairs.add(new Tuple2<>(winnerDeck, 1));
                         }
                         return winPairs.iterator();
                     })
@@ -74,8 +77,10 @@ public class SparkWinrate {
                     .flatMapToPair(duel -> {
                         List<Tuple2<String, Integer>> lossPairs = new ArrayList<>();
                         for (ArrayList<Integer> ngram : ngrams) {
-                            String loserDeck = DeckGenerator.choiceInDeck(duel.players.get(duel.winner == 0 ? 1 : 0).deck, ngram);
-                            lossPairs.add(new Tuple2<>(loserDeck, 1));
+                            int loser = duel.winner == 0 ? 1 : 0;
+                            String deck = duel.players.get(loser).deck;
+                            String loserDeck = DeckGenerator.choiceInDeck(deck, ngram);
+                            if (loserDeck != null) lossPairs.add(new Tuple2<>(loserDeck, 1));
                         }
                         return lossPairs.iterator();
                     })
@@ -109,15 +114,21 @@ public class SparkWinrate {
             // Log some final winrates
             winrates.take(4).forEach(entry -> System.out.println("Final Winrate: " + entry._1 + " -> " + entry._2));
 
-//            writeToFile(outputPath, Integer.toString(k), ngrams, winrates.collect());
+            List<Tuple2<String, Double>> collected = winrates.collect();
 
+            writeToFile(outputPath, Integer.toString(k), ngrams, collected, k==NGRAM_MAX);
         }
 
         System.out.println("OK !!!!!!!!!!!!");
         sc.close();
     }
 
-    private static void writeToFile(String fileName, String key, ArrayList<ArrayList<Integer>> ngrams, List<Tuple2<String, Double>> winrateList) {
+    private static void writeToFile(
+            String fileName, String ngramName,
+            ArrayList<ArrayList<Integer>> ngrams,
+            List<Tuple2<String, Double>> winrateList,
+            boolean close
+    ) {
         Path path = Paths.get(fileName);
         try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
                 Files.newOutputStream(path, StandardOpenOption.CREATE, StandardOpenOption.APPEND),
@@ -125,24 +136,31 @@ public class SparkWinrate {
             // Check if the file is empty to handle JSON structure correctly
             boolean isEmpty = Files.size(path) == 0;
 
+            // Opens main object
             if (isEmpty) {
                 writer.write("{\n");
             }
 
-            writer.write("  \""+ key +"\": {\n");
+            // Write "header" part
+            writer.write("\""+ ngramName +"\": {\n");
+            writer.write("\"cards\": [");
 
-            for (ArrayList<Integer> ngram : ngrams) {
-
+            for (int i = 0; i < ngrams.size(); i++) {
+                ArrayList<Integer> ngram = ngrams.get(i);
+                writer.write(ngram.toString());
+                if (i < ngrams.size() - 1) {
+                    writer.write(",");
+                }
             }
+            writer.write("],\n");
+
+            // Write start of decks
+            writer.write("\"decks\" : [");
 
             // Write each deck's winrate as a JSON object
             for (int i = 0; i < winrateList.size(); i++) {
                 Tuple2<String, Double> entry = winrateList.get(i);
-                writer.write("    {\n");
-                writer.write("      \"deck\": \"" + entry._1 + "\",\n");
-                writer.write("      \"winrate\": " + entry._2 + "\n");
-                writer.write("    }");
-
+                writer.write("{\"id\": \"" + entry._1 + "\", \"winrate\"" + entry._2 + "}");
                 // Add a comma if it's not the last element
                 if (i < winrateList.size() - 1) {
                     writer.write(",\n");
@@ -150,9 +168,15 @@ public class SparkWinrate {
                     writer.write("\n");
                 }
             }
+            // Write end of decks
+            writer.write("]\n");
 
-            writer.write("  ]\n");
+            // Write end of Ngram
             writer.write("}\n");
+
+            if (close) {
+                writer.write("}\n");
+            }
 
         } catch (IOException ex) {
             ex.printStackTrace(); // Print the stack trace to identify the issue
