@@ -13,12 +13,23 @@
 package sparkwinrate;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import datacleaner.Battle;
 
 import scala.Tuple2;
 
 public class DeckGenerator {
+
+	public static String choiceInDeck(String deck, List<Integer> elements) {
+		if (elements.size() == 8) return deck;
+		StringBuilder result = new StringBuilder();
+		for (int index : elements) {
+			result.append(deck.charAt(2*index));
+			result.append(deck.charAt(2*index+1));
+		}
+		return result.toString();
+	}
 
 	public static ArrayList<ArrayList<Integer>> generateCombinations(int n, int k) {
 		ArrayList<Integer> elements = new ArrayList<Integer>();
