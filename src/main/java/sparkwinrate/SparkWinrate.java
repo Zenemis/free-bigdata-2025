@@ -5,6 +5,8 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import scala.Array;
+import scala.Int;
 import scala.Tuple2;
 
 import java.io.BufferedWriter;
@@ -12,6 +14,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
@@ -52,56 +55,61 @@ public class SparkWinrate {
 
             ArrayList<ArrayList<Integer>> ngrams = DeckGenerator.generateCombinations(k, NGRAM_MAX);
 
-            for (ArrayList<Integer> ngram : ngrams) {
-
-                // Get wins
-                System.out.println("Computing wins");
-                JavaPairRDD<String, Integer> wins = duelRDD
-                        .mapToPair(duel -> {
+            // Get wins
+            System.out.println("Computing wins");
+            JavaPairRDD<String, Integer> wins = duelRDD
+                    .flatMapToPair(duel -> {
+                        List<Tuple2<String, Integer>> winPairs = new ArrayList<>();
+                        for (ArrayList<Integer> ngram : ngrams) {
                             String winnerDeck = DeckGenerator.choiceInDeck(duel.players.get(duel.winner).deck, ngram);
-                            return new Tuple2<>(winnerDeck, 1);
-                        })
-                        .reduceByKey(Integer::sum);
+                            winPairs.add(new Tuple2<>(winnerDeck, 1));
+                        }
+                        return winPairs.iterator();
+                    })
+                    .reduceByKey(Integer::sum);
 
-                // Get losses
-                System.out.println("Computing losses");
-                JavaPairRDD<String, Integer> losses = duelRDD
-                        .mapToPair(duel -> {
+            // Get losses
+            System.out.println("Computing losses");
+            JavaPairRDD<String, Integer> losses = duelRDD
+                    .flatMapToPair(duel -> {
+                        List<Tuple2<String, Integer>> lossPairs = new ArrayList<>();
+                        for (ArrayList<Integer> ngram : ngrams) {
                             String loserDeck = DeckGenerator.choiceInDeck(duel.players.get(duel.winner == 0 ? 1 : 0).deck, ngram);
-                            return new Tuple2<>(loserDeck, 1);
-                        })
-                        .reduceByKey(Integer::sum);
+                            lossPairs.add(new Tuple2<>(loserDeck, 1));
+                        }
+                        return lossPairs.iterator();
+                    })
+                    .reduceByKey(Integer::sum);
 
-                // Get winrates
-                System.out.println("Computing winrates as ratio");
-                JavaPairRDD<String, Tuple2<Integer, Integer>> winratesStruct = wins
-                        .fullOuterJoin(losses)
-                        .mapValues(tuple -> {
-                            int winsCount = tuple._1.orElse(0);
-                            int lossesCount = tuple._2.orElse(0);
-                            return new Tuple2<>(winsCount, lossesCount);
-                        })
-                        .filter((tuple) -> {
-                            Tuple2<Integer, Integer> winrate = tuple._2;
-                            return winrate._1 + winrate._2 >= GAMES;
-                        });
+            // Get winrates
+            System.out.println("Computing winrates as ratio");
+            JavaPairRDD<String, Tuple2<Integer, Integer>> winratesStruct = wins
+                    .fullOuterJoin(losses)
+                    .mapValues(tuple -> {
+                        int winsCount = tuple._1.orElse(0);
+                        int lossesCount = tuple._2.orElse(0);
+                        return new Tuple2<>(winsCount, lossesCount);
+                    })
+                    .filter((tuple) -> {
+                        Tuple2<Integer, Integer> winrate = tuple._2;
+                        return winrate._1 + winrate._2 >= GAMES;
+                    });
 
-                // Compute winrates
-                System.out.println("Computing winrates as double");
-                JavaPairRDD<String, Double> winrates = winratesStruct
-                        .mapValues(tuple -> {
-                            int winsCount = tuple._1;
-                            int lossesCount = tuple._2;
-                            double winrate = lossesCount == 0 ? 1.0 : (double) winsCount / (winsCount + lossesCount);
-                            return winrate;
-                        })
-                        .cache();
+            // Compute winrates
+            System.out.println("Computing winrates as double");
+            JavaPairRDD<String, Double> winrates = winratesStruct
+                    .mapValues(tuple -> {
+                        int winsCount = tuple._1;
+                        int lossesCount = tuple._2;
+                        double winrate = lossesCount == 0 ? 1.0 : (double) winsCount / (winsCount + lossesCount);
+                        return winrate;
+                    })
+                    .cache();
 
-                // Log some final winrates
-                winrates.take(4).forEach(entry -> System.out.println("Final Winrate: " + entry._1 + " -> " + entry._2));
+            // Log some final winrates
+            winrates.take(4).forEach(entry -> System.out.println("Final Winrate: " + entry._1 + " -> " + entry._2));
 
-            }
-            writeToFile(outputPath, k, winrates.collect());
+//            writeToFile(outputPath, Integer.toString(k), ngrams, winrates.collect());
 
         }
 
@@ -109,19 +117,22 @@ public class SparkWinrate {
         sc.close();
     }
 
-    private static void writeToFile(String fileName, String key, List<Tuple2<String, Double>> winrateList) {
+    private static void writeToFile(String fileName, String key, ArrayList<ArrayList<Integer>> ngrams, List<Tuple2<String, Double>> winrateList) {
+        Path path = Paths.get(fileName);
         try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
-                Files.newOutputStream(Paths.get(fileName), StandardOpenOption.APPEND),
+                Files.newOutputStream(path, StandardOpenOption.CREATE, StandardOpenOption.APPEND),
                 StandardCharsets.UTF_8))) {
             // Check if the file is empty to handle JSON structure correctly
-            boolean isEmpty = Files.size(Paths.get(fileName)) == 0;
+            boolean isEmpty = Files.size(path) == 0;
 
             if (isEmpty) {
                 writer.write("{\n");
-                writer.write("  \""+ key +"\": [\n");
-            } else {
-                // Remove the closing brackets from the existing JSON structure
-                writer.write(",\n");
+            }
+
+            writer.write("  \""+ key +"\": {\n");
+
+            for (ArrayList<Integer> ngram : ngrams) {
+
             }
 
             // Write each deck's winrate as a JSON object
