@@ -1,12 +1,5 @@
 package sparkwinrate;
 
-import datacleaner.Battle;
-import org.apache.spark.SparkConf;
-import org.apache.spark.api.java.JavaPairRDD;
-import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.api.java.JavaSparkContext;
-import scala.Tuple2;
-
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -17,6 +10,14 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.JavaPairRDD;
+import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.api.java.JavaSparkContext;
+
+import datacleaner.Battle;
+import scala.Tuple2;
 
 public class SparkWinrate {
     /*
@@ -46,89 +47,136 @@ public class SparkWinrate {
         // Log the number of battles loaded
         System.out.println("Number of battles loaded: " + duelRDD.count());
 
-        // Log first few battles for inspection
-        duelRDD.take(5).forEach(duel -> System.out.println("Battle: " + duel));
+        long startTime = System.currentTimeMillis(); // Start timer
 
-        for (int k = 1; k <= NGRAM_MAX; k++) {
+        // Group 1: Lightweight n-grams [1, 2, 7, 8]
+        processGroupedNgrams(new int[]{2, 7}, duelRDD, GAMES, outputPath);
+        
+        processGroupedNgrams(new int[]{3, 8}, duelRDD, GAMES, outputPath);
 
-            ArrayList<ArrayList<Integer>> ngrams = DeckGenerator.generateCombinations(NGRAM_MAX, k);
+        // Group 2: Moderate n-grams [3, 6]
+        processGroupedNgrams(new int[]{1, 6}, duelRDD, GAMES, outputPath);
 
-            // Log which ngram we treating
-            System.out.println("Ngrams loaded: " + ngrams);
+        // Group 3: Heavyweight n-grams [4]
+        processNgramIndividually(4, duelRDD, GAMES, outputPath);
 
-            // Get wins
-            System.out.println("Computing wins");
-            JavaPairRDD<String, Integer> wins = duelRDD
-                    .flatMapToPair(duel -> {
-                        List<Tuple2<String, Integer>> winPairs = new ArrayList<>();
-                        for (ArrayList<Integer> ngram : ngrams) {
-                            int winner = duel.winner;
-                            String deck = duel.players.get(winner).deck;
-                            String winnerDeck = DeckGenerator.choiceInDeck(deck, ngram);
-                            if (winnerDeck != null) winPairs.add(new Tuple2<>(winnerDeck, 1));
-                        }
-                        return winPairs.iterator();
-                    })
-                    .reduceByKey(Integer::sum);
+        // Group 4: Heavyweight n-grams [5]
+        processNgramIndividually(5, duelRDD, GAMES, outputPath);
 
-            // Get losses
-            System.out.println("Computing losses");
-            JavaPairRDD<String, Integer> losses = duelRDD
-                    .flatMapToPair(duel -> {
-                        List<Tuple2<String, Integer>> lossPairs = new ArrayList<>();
-                        for (ArrayList<Integer> ngram : ngrams) {
-                            int loser = duel.winner == 0 ? 1 : 0;
-                            String deck = duel.players.get(loser).deck;
-                            String loserDeck = DeckGenerator.choiceInDeck(deck, ngram);
-                            if (loserDeck != null) lossPairs.add(new Tuple2<>(loserDeck, 1));
-                        }
-                        return lossPairs.iterator();
-                    })
-                    .reduceByKey(Integer::sum);
-
-            // Get winrates
-            System.out.println("Computing winrates as ratio");
-            JavaPairRDD<String, Tuple2<Integer, Integer>> winratesStruct = wins
-                    .fullOuterJoin(losses)
-                    .mapValues(tuple -> {
-                        int winsCount = tuple._1.orElse(0);
-                        int lossesCount = tuple._2.orElse(0);
-                        return new Tuple2<>(winsCount, lossesCount);
-                    })
-                    .filter((tuple) -> {
-                        Tuple2<Integer, Integer> winrate = tuple._2;
-                        return winrate._1 + winrate._2 >= GAMES;
-                    });
-
-            // Compute winrates
-            System.out.println("Computing winrates as double");
-            JavaPairRDD<String, Double> winrates = winratesStruct
-                    .mapValues(tuple -> {
-                        int winsCount = tuple._1;
-                        int lossesCount = tuple._2;
-                        double winrate = lossesCount == 0 ? 1.0 : (double) winsCount / (winsCount + lossesCount);
-                        return winrate;
-                    })
-                    .cache();
-
-            // Log some final winrates
-            winrates.take(4).forEach(entry -> System.out.println("Final Winrate: " + entry._1 + " -> " + entry._2));
-
-            List<Tuple2<String, Double>> collected = winrates.collect();
-
-            writeToFile(outputPath, Integer.toString(k), ngrams, collected, k==NGRAM_MAX);
-        }
+        long endTime = System.currentTimeMillis(); // End timer
+        System.out.println("Total execution time: " + (endTime - startTime) + " milliseconds");
 
         System.out.println("OK !!!!!!!!!!!!");
         sc.close();
     }
 
+    private static void processGroupedNgrams(
+            int[] ks,
+            JavaRDD<Battle> duelRDD,
+            int GAMES,
+            String outputPath) {
+
+        StringBuilder groupName = new StringBuilder("Ngram_");
+        ArrayList<ArrayList<Integer>> ngrams = new ArrayList<>();
+
+        for (int k : ks) {
+            groupName.append(k).append("_");
+            ngrams.addAll(DeckGenerator.generateCombinations(8, k));
+        }
+
+        // Remove the trailing underscore
+        groupName.setLength(groupName.length() - 1);
+
+        System.out.println("Processing grouped n-grams: " + groupName);
+
+        processNgrams(ngrams, duelRDD, GAMES, outputPath, groupName.toString());
+    }
+
+    private static void processNgramIndividually(
+            int k,
+            JavaRDD<Battle> duelRDD,
+            int GAMES,
+            String outputPath) {
+
+        System.out.println("Processing individual n-gram: " + k);
+
+        ArrayList<ArrayList<Integer>> ngrams = DeckGenerator.generateCombinations(8, k);
+        processNgrams(ngrams, duelRDD, GAMES, outputPath, "Ngram_" + k);
+    }
+
+
+    private static void processNgrams(
+            List<ArrayList<Integer>> ngrams,
+            JavaRDD<Battle> duelRDD,
+            int GAMES,
+            String outputPath,
+            String ngramName) {
+
+        System.out.println("Processing: " + ngramName);
+
+        // Compute wins
+        JavaPairRDD<String, Integer> wins = duelRDD
+                .flatMapToPair(duel -> {
+                    List<Tuple2<String, Integer>> winPairs = new ArrayList<>();
+                    for (ArrayList<Integer> ngram : ngrams) {
+                        int winner = duel.winner;
+                        String deck = duel.players.get(winner).deck;
+                        String winnerDeck = DeckGenerator.choiceInDeck(deck, ngram);
+                        if (winnerDeck != null) winPairs.add(new Tuple2<>(winnerDeck, 1));
+                    }
+                    return winPairs.iterator();
+                })
+                .reduceByKey(Integer::sum);
+
+        // Compute losses
+        JavaPairRDD<String, Integer> losses = duelRDD
+                .flatMapToPair(duel -> {
+                    List<Tuple2<String, Integer>> lossPairs = new ArrayList<>();
+                    for (ArrayList<Integer> ngram : ngrams) {
+                        int loser = duel.winner == 0 ? 1 : 0;
+                        String deck = duel.players.get(loser).deck;
+                        String loserDeck = DeckGenerator.choiceInDeck(deck, ngram);
+                        if (loserDeck != null) lossPairs.add(new Tuple2<>(loserDeck, 1));
+                    }
+                    return lossPairs.iterator();
+                })
+                .reduceByKey(Integer::sum);
+
+        // Compute winrates
+        JavaPairRDD<String, Tuple2<Integer, Integer>> winratesStruct = wins
+                .fullOuterJoin(losses)
+                .mapValues(tuple -> {
+                    int winsCount = tuple._1.orElse(0);
+                    int lossesCount = tuple._2.orElse(0);
+                    return new Tuple2<>(winsCount, lossesCount);
+                })
+                .filter((tuple) -> tuple._2._1 + tuple._2._2 >= GAMES);
+
+        JavaPairRDD<String, Double> winrates = winratesStruct
+                .mapValues(tuple -> {
+                    int winsCount = tuple._1;
+                    int lossesCount = tuple._2;
+                    return lossesCount == 0 ? 1.0 : (double) winsCount / (winsCount + lossesCount);
+                })
+                .cache();
+
+        // Log and write results
+        winrates.take(4).forEach(entry -> System.out.println("Winrate: " + entry._1 + " -> " + entry._2));
+
+        List<Tuple2<String, Double>> collected = winrates.collect();
+
+        // Explicit cast to ArrayList<ArrayList<Integer>> for compatibility
+        writeToFile(outputPath, ngramName, (ArrayList<ArrayList<Integer>>) ngrams, collected, false);
+    }
+
+
+
     private static void writeToFile(
-            String fileName, String ngramName,
-            ArrayList<ArrayList<Integer>> ngrams,
+            String fileName,
+            String ngramName,
+            List<ArrayList<Integer>> ngrams, // Changed from ArrayList<ArrayList<Integer>>
             List<Tuple2<String, Double>> winrateList,
-            boolean close
-    ) {
+            boolean close) {
         Path path = Paths.get(fileName);
         try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
                 Files.newOutputStream(path, StandardOpenOption.CREATE, StandardOpenOption.APPEND),
