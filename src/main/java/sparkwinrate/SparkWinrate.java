@@ -49,19 +49,15 @@ public class SparkWinrate {
 
         long startTime = System.currentTimeMillis(); // Start timer
 
-        // Group 1: Lightweight n-grams [1, 2, 7, 8]
-        processGroupedNgrams(new int[]{2, 7}, duelRDD, GAMES, outputPath);
-        
-        processGroupedNgrams(new int[]{3, 8}, duelRDD, GAMES, outputPath);
+        // Triangle de Pascal : 1, 7, 21, 35, 35, 21, 7, 1
+        // Génération (fainéante) de tous les RDD
+        for (int i = 1; i <= NGRAM_MAX; i++) {
+            ArrayList<ArrayList<Integer>> ngrams = DeckGenerator.generateCombinations(NGRAM_MAX, i);
+            JavaPairRDD<String, Double> results = processNgram(ngrams, duelRDD, GAMES, i);
 
-        // Group 2: Moderate n-grams [3, 6]
-        processGroupedNgrams(new int[]{1, 6}, duelRDD, GAMES, outputPath);
-
-        // Group 3: Heavyweight n-grams [4]
-        processNgramIndividually(4, duelRDD, GAMES, outputPath);
-
-        // Group 4: Heavyweight n-grams [5]
-        processNgramIndividually(5, duelRDD, GAMES, outputPath);
+            List<Tuple2<String, Double>> collected = results.collect();
+            writeToFile(outputPath, i, ngrams, collected, i == NGRAM_MAX);
+        }
 
         long endTime = System.currentTimeMillis(); // End timer
         System.out.println("Total execution time: " + (endTime - startTime) + " milliseconds");
@@ -70,49 +66,15 @@ public class SparkWinrate {
         sc.close();
     }
 
-    private static void processGroupedNgrams(
-            int[] ks,
-            JavaRDD<Battle> duelRDD,
-            int GAMES,
-            String outputPath) {
 
-        StringBuilder groupName = new StringBuilder("Ngram_");
-        ArrayList<ArrayList<Integer>> ngrams = new ArrayList<>();
-
-        for (int k : ks) {
-            groupName.append(k).append("_");
-            ngrams.addAll(DeckGenerator.generateCombinations(8, k));
-        }
-
-        // Remove the trailing underscore
-        groupName.setLength(groupName.length() - 1);
-
-        System.out.println("Processing grouped n-grams: " + groupName);
-
-        processNgrams(ngrams, duelRDD, GAMES, outputPath, groupName.toString());
-    }
-
-    private static void processNgramIndividually(
-            int k,
-            JavaRDD<Battle> duelRDD,
-            int GAMES,
-            String outputPath) {
-
-        System.out.println("Processing individual n-gram: " + k);
-
-        ArrayList<ArrayList<Integer>> ngrams = DeckGenerator.generateCombinations(8, k);
-        processNgrams(ngrams, duelRDD, GAMES, outputPath, "Ngram_" + k);
-    }
-
-
-    private static void processNgrams(
+    private static JavaPairRDD<String, Double> processNgram(
             List<ArrayList<Integer>> ngrams,
             JavaRDD<Battle> duelRDD,
             int GAMES,
-            String outputPath,
-            String ngramName) {
+            int ngramIndex
+    ) {
 
-        System.out.println("Processing: " + ngramName);
+        System.out.println("Processing: " + Integer.toString(ngramIndex));
 
         // Compute wins
         JavaPairRDD<String, Integer> wins = duelRDD
@@ -157,23 +119,16 @@ public class SparkWinrate {
                     int winsCount = tuple._1;
                     int lossesCount = tuple._2;
                     return lossesCount == 0 ? 1.0 : (double) winsCount / (winsCount + lossesCount);
-                })
-                .cache();
+                });
 
-        // Log and write results
-        winrates.take(4).forEach(entry -> System.out.println("Winrate: " + entry._1 + " -> " + entry._2));
-
-        List<Tuple2<String, Double>> collected = winrates.collect();
-
-        // Explicit cast to ArrayList<ArrayList<Integer>> for compatibility
-        writeToFile(outputPath, ngramName, (ArrayList<ArrayList<Integer>>) ngrams, collected, false);
+        return winrates;
     }
 
 
 
     private static void writeToFile(
             String fileName,
-            String ngramName,
+            int ngramIndex,
             List<ArrayList<Integer>> ngrams, // Changed from ArrayList<ArrayList<Integer>>
             List<Tuple2<String, Double>> winrateList,
             boolean close) {
@@ -190,7 +145,7 @@ public class SparkWinrate {
             }
 
             // Write "header" part
-            writer.write("\""+ ngramName +"\": {\n");
+            writer.write("\""+ Integer.toString(ngramIndex) +"\": {\n");
             writer.write("\"cards\": [");
 
             for (int i = 0; i < ngrams.size(); i++) {
