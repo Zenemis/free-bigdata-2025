@@ -28,7 +28,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>oldcrtracker.DeckGenerator</mainClass>
+							<mainClass>sparkwinrate.SparkWinrate</mainClass>
 						</manifest>
 					</archive>
 				</configuration>
