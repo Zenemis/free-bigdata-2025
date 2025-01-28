@@ -3,6 +3,7 @@ package sparkwinrate;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -35,7 +36,9 @@ public class SparkWinrate {
 
         int BATTLES = 80;
         int PLAYERS = 10;
+
         int NGRAM_MAX = 8;
+        final int NB_DECKS = 100000;
 
         SparkConf conf = new SparkConf().setAppName("Winrate Calculator");
         JavaSparkContext sc = new JavaSparkContext(conf);
@@ -56,31 +59,45 @@ public class SparkWinrate {
         JavaPairRDD<String, Deck>[] results = new JavaPairRDD[8];
         for (int i = 1; i <= NGRAM_MAX; i++) {
             ArrayList<ArrayList<Integer>> ngrams = DeckGenerator.generateCombinations(NGRAM_MAX, i);
-            results[i-1] = processNgram(ngrams, duelRDD, i);
+            results[i-1] = processNgram(ngrams, duelRDD);
         }
 
-        for (int i = 1; i <= NGRAM_MAX; i++) {
-            System.out.println("Processing: " + Integer.toString(i));
-            ArrayList<ArrayList<Integer>> ngrams = DeckGenerator.generateCombinations(NGRAM_MAX, i);
-            List<Deck> collected = results[i-1]
-                    .values()
-                    .filter((Deck x) -> x.players.size() >= PLAYERS && x.count >= BATTLES)
-                    .collect();
-            writeToFile(outputPath, i, ngrams, collected, i == NGRAM_MAX);
+        // Ouverture du fichier
+        Path path = Paths.get(outputPath);
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
+                Files.newOutputStream(path, StandardOpenOption.CREATE, StandardOpenOption.APPEND),
+                StandardCharsets.UTF_8))) {
+
+            // Ecriture par Ngram de tous les winrates
+            for (int i = 1; i <= NGRAM_MAX; i++) {
+                System.out.println("Processing: " + Integer.toString(i));
+                ArrayList<ArrayList<Integer>> ngrams = DeckGenerator.generateCombinations(NGRAM_MAX, i);
+                List<Deck> collected = results[i - 1]
+                        .values()
+                        .filter((Deck x) -> x.players.size() >= PLAYERS && x.count >= BATTLES)
+                        .top(NB_DECKS, new WinrateComparator());
+
+                writeToFile(writer, i, ngrams, collected);
+            }
+
+            // Ecriture de la fin de fichier
+            writer.write("}\n");
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } finally {
+            long endTime = System.currentTimeMillis(); // End timer
+            System.out.println("Total execution time: " + (endTime - startTime) + " milliseconds");
+
+            System.out.println("OK !!!!!!!!!!!!");
+            sc.close();
         }
-
-        long endTime = System.currentTimeMillis(); // End timer
-        System.out.println("Total execution time: " + (endTime - startTime) + " milliseconds");
-
-        System.out.println("OK !!!!!!!!!!!!");
-        sc.close();
     }
 
 
     private static JavaPairRDD<String, Deck> processNgram(
             List<ArrayList<Integer>> ngrams,
-            JavaRDD<Battle> duelRDD,
-            int ngramIndex
+            JavaRDD<Battle> duelRDD
     ) {
 
         // Compute winrates as "Deck"
@@ -114,22 +131,11 @@ public class SparkWinrate {
 
 
     private static void writeToFile(
-            String fileName,
+            Writer writer,
             int ngramIndex,
             List<ArrayList<Integer>> ngrams, // Changed from ArrayList<ArrayList<Integer>>
-            List<Deck> winrateList,
-            boolean close) {
-        Path path = Paths.get(fileName);
-        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
-                Files.newOutputStream(path, StandardOpenOption.CREATE, StandardOpenOption.APPEND),
-                StandardCharsets.UTF_8))) {
-            // Check if the file is empty to handle JSON structure correctly
-            boolean isEmpty = Files.size(path) == 0;
-
-            // Opens main object
-            if (isEmpty) {
-                writer.write("{\n");
-            }
+            List<Deck> winrateList
+    ) throws IOException {
 
             // Write "header" part
             writer.write("\""+ Integer.toString(ngramIndex) +"\": {\n");
@@ -158,19 +164,9 @@ public class SparkWinrate {
                     writer.write("\n");
                 }
             }
-            // Write end of decks
-            writer.write("]\n");
+            // Write end of decks and of ngram
+            writer.write("]\n}\n");
 
-            // Write end of Ngram
-            writer.write("}\n");
-
-            if (close) {
-                writer.write("}\n");
-            }
-
-        } catch (IOException ex) {
-            ex.printStackTrace(); // Print the stack trace to identify the issue
-        }
     }
 
 }
