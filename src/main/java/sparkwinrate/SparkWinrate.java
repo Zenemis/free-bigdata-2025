@@ -27,7 +27,7 @@ public class SparkWinrate {
     public static void main(String[] args) {
         long startTime = System.currentTimeMillis(); // Start timing
 
-        final int[] CARDSGRAMS = { 1, 2, 3, 4, 6, 7, 8 };
+        final int[] CARDSGRAMS = { 1, 2, 3, 4, 5, 6, 7, 8 };
         final int[] CARDSCOMBI = { 8, 28, 56, 70, 56, 28, 8, 1 };
 
         String inputPath = args[0];
