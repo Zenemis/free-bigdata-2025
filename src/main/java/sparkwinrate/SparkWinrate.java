@@ -11,6 +11,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 
+import datacleaner.Player;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
@@ -32,7 +33,8 @@ public class SparkWinrate {
 
         System.out.println("Starting SparkWinrate");
 
-        int GAMES = 80;
+        int BATTLES = 80;
+        int PLAYERS = 10;
         int NGRAM_MAX = 8;
 
         SparkConf conf = new SparkConf().setAppName("Winrate Calculator");
@@ -51,11 +53,19 @@ public class SparkWinrate {
 
         // Triangle de Pascal : 1, 7, 21, 35, 35, 21, 7, 1
         // Génération (fainéante) de tous les RDD
+        JavaPairRDD<String, Deck>[] results = new JavaPairRDD[8];
         for (int i = 1; i <= NGRAM_MAX; i++) {
             ArrayList<ArrayList<Integer>> ngrams = DeckGenerator.generateCombinations(NGRAM_MAX, i);
-            JavaPairRDD<String, Double> results = processNgram(ngrams, duelRDD, GAMES, i);
+            results[i-1] = processNgram(ngrams, duelRDD, i);
+        }
 
-            List<Tuple2<String, Double>> collected = results.collect();
+        for (int i = 1; i <= NGRAM_MAX; i++) {
+            System.out.println("Processing: " + Integer.toString(i));
+            ArrayList<ArrayList<Integer>> ngrams = DeckGenerator.generateCombinations(NGRAM_MAX, i);
+            List<Deck> collected = results[i-1]
+                    .values()
+                    .filter((Deck x) -> x.players.size() >= PLAYERS && x.count >= BATTLES)
+                    .collect();
             writeToFile(outputPath, i, ngrams, collected, i == NGRAM_MAX);
         }
 
@@ -67,61 +77,38 @@ public class SparkWinrate {
     }
 
 
-    private static JavaPairRDD<String, Double> processNgram(
+    private static JavaPairRDD<String, Deck> processNgram(
             List<ArrayList<Integer>> ngrams,
             JavaRDD<Battle> duelRDD,
-            int GAMES,
             int ngramIndex
     ) {
 
-        System.out.println("Processing: " + Integer.toString(ngramIndex));
-
-        // Compute wins
-        JavaPairRDD<String, Integer> wins = duelRDD
+        // Compute winrates as "Deck"
+        JavaPairRDD<String, Deck> deckWR = duelRDD
                 .flatMapToPair(duel -> {
-                    List<Tuple2<String, Integer>> winPairs = new ArrayList<>();
+                    List<Tuple2<String, Deck>> deckPair = new ArrayList<>();
                     for (ArrayList<Integer> ngram : ngrams) {
-                        int winner = duel.winner;
-                        String deck = duel.players.get(winner).deck;
-                        String winnerDeck = DeckGenerator.choiceInDeck(deck, ngram);
-                        if (winnerDeck != null) winPairs.add(new Tuple2<>(winnerDeck, 1));
+
+                        int winIndex = duel.winner;
+                        Player winner = duel.players.get(winIndex);
+                        String winNgram = DeckGenerator.choiceInDeck(winner.deck, ngram);
+
+                        int loseIndex = duel.winner == 0 ? 1 : 0;
+                        Player loser = duel.players.get(loseIndex);
+                        String loseNgram = DeckGenerator.choiceInDeck(loser.deck, ngram);
+
+                        double strengthDelta = winner.strength - loser.strength;
+
+                        if (winNgram != null)
+                            deckPair.add(new Tuple2<>(winNgram, Deck.fromPlayer(winNgram, winner, strengthDelta, true)));
+                        if (loseNgram != null)
+                            deckPair.add(new Tuple2<>(winNgram, Deck.fromPlayer(loseNgram, loser, -strengthDelta, false)));
                     }
-                    return winPairs.iterator();
+                    return deckPair.iterator();
                 })
-                .reduceByKey(Integer::sum);
+                .reduceByKey(Deck::merge);
 
-        // Compute losses
-        JavaPairRDD<String, Integer> losses = duelRDD
-                .flatMapToPair(duel -> {
-                    List<Tuple2<String, Integer>> lossPairs = new ArrayList<>();
-                    for (ArrayList<Integer> ngram : ngrams) {
-                        int loser = duel.winner == 0 ? 1 : 0;
-                        String deck = duel.players.get(loser).deck;
-                        String loserDeck = DeckGenerator.choiceInDeck(deck, ngram);
-                        if (loserDeck != null) lossPairs.add(new Tuple2<>(loserDeck, 1));
-                    }
-                    return lossPairs.iterator();
-                })
-                .reduceByKey(Integer::sum);
-
-        // Compute winrates
-        JavaPairRDD<String, Tuple2<Integer, Integer>> winratesStruct = wins
-                .fullOuterJoin(losses)
-                .mapValues(tuple -> {
-                    int winsCount = tuple._1.orElse(0);
-                    int lossesCount = tuple._2.orElse(0);
-                    return new Tuple2<>(winsCount, lossesCount);
-                })
-                .filter((tuple) -> tuple._2._1 + tuple._2._2 >= GAMES);
-
-        JavaPairRDD<String, Double> winrates = winratesStruct
-                .mapValues(tuple -> {
-                    int winsCount = tuple._1;
-                    int lossesCount = tuple._2;
-                    return lossesCount == 0 ? 1.0 : (double) winsCount / (winsCount + lossesCount);
-                });
-
-        return winrates;
+        return deckWR;
     }
 
 
@@ -130,7 +117,7 @@ public class SparkWinrate {
             String fileName,
             int ngramIndex,
             List<ArrayList<Integer>> ngrams, // Changed from ArrayList<ArrayList<Integer>>
-            List<Tuple2<String, Double>> winrateList,
+            List<Deck> winrateList,
             boolean close) {
         Path path = Paths.get(fileName);
         try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
@@ -162,8 +149,8 @@ public class SparkWinrate {
 
             // Write each deck's winrate as a JSON object
             for (int i = 0; i < winrateList.size(); i++) {
-                Tuple2<String, Double> entry = winrateList.get(i);
-                writer.write("{\"id\": \"" + entry._1 + "\", \"winrate\"" + entry._2 + "}");
+                Deck entry = winrateList.get(i);
+                writer.write(entry.toString());
                 // Add a comma if it's not the last element
                 if (i < winrateList.size() - 1) {
                     writer.write(",\n");
